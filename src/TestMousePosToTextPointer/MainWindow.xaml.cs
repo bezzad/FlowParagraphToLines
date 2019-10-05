@@ -82,8 +82,8 @@ namespace TestMousePosToTextPointer
         }
 
         List<(int, int)> OffsetRanges = new List<(int, int)>();
-       
-        private List<string> CalcLines(string content, double width)
+
+        private List<string> CalcLinesByFirstOfNextLine(string content, double width)
         {
             Lines.Clear();
             OffsetRanges.Clear();
@@ -105,8 +105,48 @@ namespace TestMousePosToTextPointer
 
                 var nextOffset = nextLineStartTextPointer != null
                     ? new TextRange(TestFlowPage.ContentStart, nextLineStartTextPointer).Text.Length
-                    : ContentText.Length;
-                
+                    : content.Length;
+
+                if (nextOffset <= offset)
+                    nextOffset = content.Length;
+
+                OffsetRanges.Add((offset, nextOffset - 1));
+                var lineText = content.Substring(offset, nextOffset - offset);
+                Lines.Add(lineText);
+
+                offset = nextOffset;
+            }
+
+            return Lines;
+        }
+
+        private List<string> CalcLinesByEndOfLine(string content, double width)
+        {
+            Lines.Clear();
+            OffsetRanges.Clear();
+
+            var lineHalfHeight = LineHeight / 2;
+            var offset = 0;
+            var startTextPointer = TestFlowPage.ContentStart;
+            var startPoint = startTextPointer.GetCharacterRect(LogicalDirection.Backward).Location;
+            var xPoint = startPoint.X;
+            var yPoint = startPoint.Y + lineHalfHeight;
+
+            // While we are not at the end of document
+            while (offset < content.Length)
+            {
+                // next line start position
+                yPoint += LineHeight;
+                var nextLineStartPoint = PointToScreen(new Point(xPoint, yPoint));
+                var nextLineStartTextPointer = TestFlowPage.ScreenPointToTextPointer(nextLineStartPoint);
+
+                var nextOffset = nextLineStartTextPointer != null
+                    ? new TextRange(TestFlowPage.ContentStart, nextLineStartTextPointer).Text.Length
+                    : content.Length;
+
+                if (nextOffset <= offset)
+                    nextOffset = content.Length;
+
                 OffsetRanges.Add((offset, nextOffset - 1));
                 var lineText = ContentText.Substring(offset, nextOffset - offset);
                 Lines.Add(lineText);
@@ -117,6 +157,10 @@ namespace TestMousePosToTextPointer
             return Lines;
         }
 
+        private List<string> CalcLines(string content, double width)
+        {
+            return CalcLinesByEndOfLine(content, width);
+        }
 
         private void Test_MouseMove(object sender, MouseEventArgs e)
         {
