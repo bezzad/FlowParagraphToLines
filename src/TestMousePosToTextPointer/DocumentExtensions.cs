@@ -13,6 +13,7 @@ namespace TestMousePosToTextPointer
     public static class DocumentExtensions
     {
         private static double LineHeight { get; set; } = 25;
+        private static double LineHalfHeight => LineHeight / 2;
         private static FontFamily ArialFontFamily { get; set; } = new FontFamily("Arial");
         private static XmlLanguage Lang { get; set; } = XmlLanguage.GetLanguage("fa-IR");
         private static Visual Visual => Application.Current.MainWindow;
@@ -72,12 +73,11 @@ namespace TestMousePosToTextPointer
             var lines = new List<string>();
             var offsetRanges = new List<(int, int)>();
 
-            var lineHalfHeight = LineHeight / 2;
             var offset = 0;
             var startTextPointer = document.ContentStart;
             var startPoint = startTextPointer.GetCharacterRect(LogicalDirection.Backward).Location;
             var xPoint = startPoint.X;
-            var yPoint = startPoint.Y + lineHalfHeight;
+            var yPoint = startPoint.Y + LineHalfHeight;
 
             // While we are not at the end of document
             while (offset < content.Length)
@@ -109,23 +109,22 @@ namespace TestMousePosToTextPointer
             var lines = new List<string>();
             var offsetRanges = new List<(int, int)>();
 
-            var lineHalfHeight = LineHeight / 2;
             var offset = 0;
             var startTextPointer = document.ContentStart;
             var startPoint = startTextPointer.GetCharacterRect(LogicalDirection.Backward).Location;
-            var xPoint = startPoint.X;
-            var yPoint = startPoint.Y + lineHalfHeight;
+            var yPoint = startPoint.Y + LineHalfHeight;
+            //var isRtl = Math.Abs(width - document.PagePadding.Right - xStartPoint) < 5;
+            var xEndPoint = document.PagePadding.Left;
 
             // While we are not at the end of document
             while (offset < content.Length)
             {
-                // next line start position
-                yPoint += LineHeight;
-                var nextLineStartPoint = Visual.PointToScreen(new Point(xPoint, yPoint));
-                var nextLineStartTextPointer = document.ScreenPointToTextPointer(nextLineStartPoint);
+                // end of line position
+                var endPoint = Visual.PointToScreen(new Point(xEndPoint, yPoint));
+                var endTextPointer = document.ScreenPointToTextPointer(endPoint);
 
-                var nextOffset = nextLineStartTextPointer != null
-                    ? new TextRange(document.ContentStart, nextLineStartTextPointer).Text.Length
+                var nextOffset = endTextPointer != null
+                    ? new TextRange(document.ContentStart, endTextPointer).Text.Length
                     : content.Length;
 
                 if (nextOffset <= offset)
@@ -136,11 +135,12 @@ namespace TestMousePosToTextPointer
                 lines.Add(lineText);
 
                 offset = nextOffset;
+                yPoint += LineHeight;
             }
 
             return lines;
         }
 
-       
+
     }
 }
