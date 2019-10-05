@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
-using System.Windows.Automation.Peers;
-using System.Windows.Automation.Provider;
-using System.Windows.Automation.Text;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -34,7 +30,6 @@ namespace TestMousePosToTextPointer
             TestFlowPage.FontFamily = ArialFontFamily;
             TestFlowPage.FontWeight = FontWeights.Normal;
             TestFlowPage.FontSize = TestFlowPage.FontSize;
-            TestFlowPage.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
             TestFlowPage.TextAlignment = TextAlignment.Left;
             TestFlowPage.Language = Lang;
             TestFlowPage.PagePadding = new Thickness(10);
@@ -50,6 +45,7 @@ namespace TestMousePosToTextPointer
 
                 foreach (var line in lines)
                     ListBoxLines.Items.Add(line);
+
             };
         }
 
@@ -59,6 +55,8 @@ namespace TestMousePosToTextPointer
             var run = para?.Inlines.FirstInline as Run;
             return run?.Text;
         }
+
+        
 
 
         private void Test_MouseMove(object sender, MouseEventArgs e)
@@ -83,6 +81,11 @@ namespace TestMousePosToTextPointer
             {
                 LabelMsg.DataContext = exception.Message;
             }
+        }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            new FormattedTextWindow().ShowDialog();
         }
     }
 

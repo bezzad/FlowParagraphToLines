@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Text;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
+using MethodTimer;
 
 namespace TestMousePosToTextPointer
 {
@@ -104,10 +107,54 @@ namespace TestMousePosToTextPointer
             return lines;
         }
 
+        public static FlowDocument Clone(this FlowDocument document, double width)
+        {
+            var docHolder = new FlowDocumentPageViewer
+            {
+                Width = width,
+                Height = double.MaxValue
+            };
+
+            var doc = new FlowDocument
+            {
+                LineStackingStrategy = document.LineStackingStrategy,
+                LineHeight = document.LineHeight,
+                FlowDirection = document.FlowDirection,
+                FontFamily = document.FontFamily,
+                FontWeight = document.FontWeight,
+                FontSize = document.FontSize,
+                TextAlignment = document.TextAlignment,
+                Language = document.Language,
+                PagePadding = document.PagePadding,
+                ColumnGap = document.ColumnGap,
+                ColumnWidth = document.ColumnWidth,
+                PageWidth = width,
+                MaxPageWidth = width,
+                PageHeight = double.NaN,
+                MaxPageHeight = double.PositiveInfinity
+            };
+            docHolder.Document = document;
+
+            return doc;
+        }
+
+        [Time]
         public static List<string> CalcLinesByEndOfLine(this FlowDocument document, string content, double width)
         {
             var lines = new List<string>();
             var offsetRanges = new List<(int, int)>();
+//            var document = flowDocument.Clone(width);
+//            var p = new Paragraph(new Run(content));
+//            p.FontFamily = ArialFontFamily;
+//            p.FontSize = document.FontSize;
+//            p.FontStyle = FontStyles.Normal;
+//            p.TextAlignment = document.TextAlignment;
+//            p.LineHeight = document.LineHeight;
+//            p.LineStackingStrategy = document.LineStackingStrategy;
+//            p.Foreground = Brushes.Black;
+//            p.Language = document.Language;
+//            p.FontWeight = document.FontWeight;
+//            document.Blocks.Add(new Paragraph(new Run(content)));
 
             var offset = 0;
             var startTextPointer = document.ContentStart;
