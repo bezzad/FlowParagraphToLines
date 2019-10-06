@@ -39,7 +39,7 @@ namespace TestMousePosToTextPointer
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
             VisualWords = new Dictionary<Rect, FormattedText>();
             CreateFormattedWords();
-            SelectedBrush = new SolidColorBrush(Colors.DarkCyan) {Opacity = 0.5};
+            SelectedBrush = new SolidColorBrush(Colors.DarkCyan) { Opacity = 0.5 };
 
             // Add the event handler for MouseLeftButtonUp.
             MouseLeftButtonUp += TextCanvasMouseLeftButtonUp;
@@ -144,14 +144,7 @@ namespace TestMousePosToTextPointer
             var x = Padding.Left;
             var y = Padding.Top;
             var lineHeight = 35;
-            var spaceFormatter = new FormattedText(
-                " ",
-                CultureInfo.GetCultureInfo("en-us"),
-                FlowDirection.LeftToRight,
-                new Typeface("Arial"),
-                32,
-                Brushes.Black,
-                1);
+            var spaceWidth = 5;
 
             var words = text.Split(' ');
             var random = false;
@@ -180,8 +173,7 @@ namespace TestMousePosToTextPointer
 
                 VisualWords.Add(new Rect(new Point(x, y), new Size(textFormatter.Width, lineHeight)), textFormatter);
                 x += textFormatter.Width;
-                VisualWords.Add(new Rect(new Point(x, y), new Size(spaceFormatter.WidthIncludingTrailingWhitespace, lineHeight)), spaceFormatter);
-                x += spaceFormatter.WidthIncludingTrailingWhitespace;
+                x += spaceWidth;
             }
         }
 
@@ -197,25 +189,39 @@ namespace TestMousePosToTextPointer
             if (IsMouseDown)
             {
                 var wordRects = VisualWords.Keys.ToList();
-                var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), new RectComparer());
-                var endWord = wordRects.BinarySearch(new Rect(EndSelectionPoint, new Size(1, 1)), new RectComparer());
+                var rectComparer = new RectComparer();
+                var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), rectComparer);
+                var endWord = wordRects.BinarySearch(new Rect(EndSelectionPoint, new Size(1, 1)), rectComparer);
 
                 if (startWord < 0)
                     return;
 
-                if (endWord == -25)
-                    endWord = wordRects.Count - 1;
-                else if(endWord == -1 || endWord == -13)
-                    endWord = 0;
-                else if(endWord < 0)
-                    return;
+                if (endWord < 0)
+                {
+                    if (rectComparer.Compare(wordRects.LastOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) < 0)
+                        endWord = wordRects.Count - 1;
+                    else if (rectComparer.Compare(wordRects.FirstOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) > 0)
+                        endWord = 0;
+                    else
+                        return;
+                }
 
                 var from = Math.Min(startWord, endWord);
                 var to = Math.Max(startWord, endWord);
 
-                for (; from <= to; from++)
+                for (var w = from; w <= to; w++)
                 {
-                    dc.DrawRectangle(SelectedBrush, null, wordRects[from]);
+                    var currentWord = wordRects[w];
+                    var isFirstOfLineWord = w == from || !wordRects[w - 1].Y.Equals(currentWord.Y);
+
+                    if (isFirstOfLineWord == false)
+                    {
+                        var previousWord = wordRects[w - 1];
+                        var startX = previousWord.Location.X + previousWord.Width;
+                        var width = currentWord.Location.X - startX + currentWord.Width;
+                        currentWord = new Rect(new Point(startX, currentWord.Y), new Size(width, currentWord.Height));
+                    }
+                    dc.DrawRectangle(SelectedBrush, null, currentWord);
                 }
             }
         }
