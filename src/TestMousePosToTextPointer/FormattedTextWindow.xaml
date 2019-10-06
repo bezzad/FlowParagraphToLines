@@ -5,8 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TestMousePosToTextPointer"
         mc:Ignorable="d"
+        Name="MainForm"
         Title="FormattedTextWindow" Height="450" Width="800">
     <Grid>
-        <Canvas Name="MainCanvas"></Canvas>
+        <local:TextCanvas Width="{Binding ElementName=MainForm, Mode=TwoWay, Path=Width}"
+                          Height="{Binding ElementName=MainForm, Mode=TwoWay, Path=Height}"
+                          Padding="20">
+            <local:TextCanvas.Resources>
+                <Style TargetType="local:TextCanvas">
+                    <Setter Property="Text" Value="Test"/>
+                    <Setter Property="Background" Value="AntiqueWhite"/>
+                </Style>
+            </local:TextCanvas.Resources>
+        </local:TextCanvas>
     </Grid>
 </Window>
