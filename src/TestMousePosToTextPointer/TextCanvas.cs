@@ -193,36 +193,51 @@ namespace TestMousePosToTextPointer
 
         protected void HighlightSelectedText(DrawingContext dc)
         {
+            var rectComparer = new RectComparer();
             var wordRects = VisualWords.Keys.ToList();
+
+            int getCorrectWordIndex(Point selectedPoint, bool forceToFind = false)
+            {
+                var selectedRect = new Rect(selectedPoint, new Size(1, 1));
+                var result = 0;
+
+                if (forceToFind && rectComparer.Compare(wordRects.LastOrDefault(), selectedRect) < 0)
+                    result = wordRects.Count - 1;
+                else if (forceToFind && rectComparer.Compare(wordRects.FirstOrDefault(), selectedRect) > 0)
+                    result = 0;
+                else
+                    result = wordRects.BinarySearch(selectedRect, rectComparer);
+
+#if DEBUG
+                if (result < 0)
+                    dc.DrawEllipse(Brushes.Red, null, selectedRect.Location, 5, 5);
+#endif
+
+                return result;
+            }
 
             if (StartSelectionPoint.HasValue && EndSelectionPoint.HasValue)
             {
-                var rectComparer = new RectComparer();
-                var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint.Value, new Size(1, 1)),
-                    rectComparer);
-                var endWord =
-                    wordRects.BinarySearch(new Rect(EndSelectionPoint.Value, new Size(1, 1)), rectComparer);
+                var startWord = getCorrectWordIndex(StartSelectionPoint.Value);
+                var endWord = getCorrectWordIndex(EndSelectionPoint.Value);
 
-                if (startWord < 0)
-                    return;
+                if (startWord < 0 && endWord >= 0) // startWord is out but endWord is in correct range
+                    startWord = getCorrectWordIndex(StartSelectionPoint.Value, true);
 
-                if (endWord < 0)
+                if (endWord < 0 && startWord >= 0) // endWord is out but startWord is in correct range
+                    endWord = getCorrectWordIndex(EndSelectionPoint.Value, true);
+
+                if ((startWord < 0 || endWord < 0) == false)
                 {
-                    if (rectComparer.Compare(wordRects.LastOrDefault(),
-                            new Rect(EndSelectionPoint.Value, new Size(1, 1))) <
-                        0)
-                        endWord = wordRects.Count - 1;
-                    else if (rectComparer.Compare(wordRects.FirstOrDefault(),
-                                 new Rect(EndSelectionPoint.Value, new Size(1, 1))) > 0)
-                        endWord = 0;
-                    else
-                        return;
+                    HighlightRange = new Range(startWord, endWord);
                 }
 
-                HighlightRange = new Range(startWord, endWord);
                 if (IsMouseDown == false)
                     StartSelectionPoint = EndSelectionPoint = null;
             }
+
+            if (HighlightRange == null)
+                return;
 
             var from = Math.Min(HighlightRange.Start, HighlightRange.End);
             var to = Math.Max(HighlightRange.Start, HighlightRange.End);
