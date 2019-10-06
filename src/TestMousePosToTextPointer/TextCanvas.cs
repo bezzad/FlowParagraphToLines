@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -39,123 +40,39 @@ namespace TestMousePosToTextPointer
             CreateFormattedWords();
 
             // Add the event handler for MouseLeftButtonUp.
-            MouseLeftButtonUp += MyVisualHost_MouseLeftButtonUp;
-            MouseLeftButtonDown += MyVisualHost_MouseLeftButtonDown;
+            MouseLeftButtonUp += TextCanvasMouseLeftButtonUp;
+            MouseLeftButtonDown += TextCanvasMouseLeftButtonDown;
+            MouseMove += TextCanvasMouseMove;
+        }
+
+        private void TextCanvasMouseMove(object sender, MouseEventArgs e)
+        {
+            if (IsMouseDown)
+            {
+                EndSelectionPoint = e.GetPosition(this);
+                InvalidateVisual();
+            }
         }
 
         // Capture the mouse event and hit test the coordinate point value against
         // the child visual objects.
-        private void MyVisualHost_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void TextCanvasMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // Retrieve the coordinates of the mouse button event.
             var pt = e.GetPosition((UIElement)sender);
             IsMouseDown = true;
             StartSelectionPoint = pt;
             InvalidateVisual();
-
-            // Initiate the hit test by setting up a hit test result callback method.
-            VisualTreeHelper.HitTest(this, null, MyCallback, new PointHitTestParameters(StartSelectionPoint));
         }
 
         // Capture the mouse event and hit test the coordinate point value against
         // the child visual objects.
-        private void MyVisualHost_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void TextCanvasMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             // Retrieve the coordinates of the mouse button event.
             IsMouseDown = false;
             EndSelectionPoint = e.GetPosition((UIElement)sender);
             InvalidateVisual();
-
-            // Initiate the hit test by setting up a hit test result callback method.
-            VisualTreeHelper.HitTest(this, null, MyCallback, new PointHitTestParameters(EndSelectionPoint));
-        }
-
-        protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
-        {
-            if (VisualTreeHelper.GetDescendantBounds(this).Contains(hitTestParameters.HitPoint))
-            {
-                StartSelectionPoint = hitTestParameters.HitPoint;
-                return new PointHitTestResult(this, hitTestParameters.HitPoint);
-            }
-
-            return null;
-        }
-
-        protected override GeometryHitTestResult HitTestCore(GeometryHitTestParameters hitTestParameters)
-        {
-            // Possibly checking every pixel within the hitTestParameters.HitGeometry.Bounds rectangle
-            var geometry = new RectangleGeometry(VisualTreeHelper.GetDescendantBounds(this));
-            return new GeometryHitTestResult
-                (this, geometry.FillContainsWithDetail(hitTestParameters.HitGeometry));
-        }
-
-        // If a child visual object is hit, toggle its opacity to visually indicate a hit.
-        public HitTestResultBehavior MyCallback(HitTestResult result)
-        {
-            if (result.VisualHit.GetType() == typeof(System.Windows.Media.DrawingVisual))
-            {
-                ((System.Windows.Media.DrawingVisual)result.VisualHit).Opacity =
-                    ((System.Windows.Media.DrawingVisual)result.VisualHit).Opacity == 1.0 ? 0.4 : 1.0;
-            }
-
-            // Stop the hit test enumeration of objects in the visual tree.
-            return HitTestResultBehavior.Stop;
-        }
-
-        // Create a DrawingVisual that contains text.
-        private System.Windows.Media.DrawingVisual CreateDrawingVisualText()
-        {
-            // Create an instance of a DrawingVisual.
-            System.Windows.Media.DrawingVisual drawingVisual = new System.Windows.Media.DrawingVisual();
-
-            // Retrieve the DrawingContext from the DrawingVisual.
-            DrawingContext drawingContext = drawingVisual.RenderOpen();
-
-            //---------------------------------------------------
-            var testString = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor";
-
-            // Create the initial formatted text string.
-            TextFormatter = new FormattedText(
-                testString,
-                CultureInfo.GetCultureInfo("en-us"),
-                FlowDirection.LeftToRight,
-                new Typeface("Arial"),
-                32,
-                Brushes.Black, 1)
-            {
-                // Set a maximum width and height. If the text overflows these values, an ellipsis "..." appears.
-                MaxTextWidth = 500,
-                MaxTextHeight = 540
-            };
-
-            // Use a larger font size beginning at the first (zero-based) character and continuing for 5 characters.
-            // The font size is calculated in terms of points -- not as device-independent pixels.
-            TextFormatter.SetFontSize(36 * (96.0 / 72.0), 0, 5);
-
-            // Use a Bold font weight beginning at the 6th character and continuing for 11 characters.
-            TextFormatter.SetFontWeight(FontWeights.Bold, 6, 11);
-
-            // Use a linear gradient brush beginning at the 6th character and continuing for 11 characters.
-            TextFormatter.SetForegroundBrush(
-                new LinearGradientBrush(
-                    Colors.Orange,
-                    Colors.Teal,
-                    90.0),
-                6, 11);
-
-            // Use an Italic font style beginning at the 28th character and continuing for 28 characters.
-            TextFormatter.SetFontStyle(FontStyles.Italic, 28, 28);
-
-            // Draw the formatted text string to the DrawingContext of the control.
-            drawingContext.DrawText(TextFormatter, new Point(0, 0));
-
-            //---------------------------------------------------
-
-
-            // Close the DrawingContext to persist changes to the DrawingVisual.
-            drawingContext.Close();
-
-            return drawingVisual;
         }
 
         protected void OnRender_old(DrawingContext drawingContext)
@@ -278,14 +195,30 @@ namespace TestMousePosToTextPointer
             if (IsMouseDown)
             {
                 var wordRects = VisualWords.Keys.ToList();
-                var selectedWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), new RectComparer());
-                if(selectedWord < 0)
+                var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), new RectComparer());
+                var endWord = wordRects.BinarySearch(new Rect(EndSelectionPoint, new Size(1, 1)), new RectComparer());
+
+                if (startWord < 0)
                     return;
 
-                dc.DrawRectangle(null, new Pen(Brushes.Red, 1.0), wordRects[selectedWord]);
+                if (endWord == -25)
+                    endWord = wordRects.Count - 1;
+                else if(endWord == -1 || endWord == -13)
+                    endWord = 0;
+                else if(endWord < 0)
+                    return;
+
+                var from = Math.Min(startWord, endWord);
+                var to = Math.Max(startWord, endWord);
+
+                for (; from <= to; from++)
+                {
+                    dc.DrawRectangle(null, new Pen(Brushes.Red, 1.0), wordRects[from]);
+                }
             }
         }
     }
+
     public class RectComparer : IComparer<Rect>
     {
         public int Compare(Rect r1, Rect r2)
