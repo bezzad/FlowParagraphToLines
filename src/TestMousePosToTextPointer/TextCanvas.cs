@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -12,13 +13,17 @@ namespace TestMousePosToTextPointer
     public class TextCanvas : Canvas
     {
         protected FormattedText TextFormatter { get; set; }
-        protected Point StartSelectionPoint { get; set; }
-        protected Point EndSelectionPoint { get; set; }
+        protected Point? StartSelectionPoint { get; set; }
+        protected Point? EndSelectionPoint { get; set; }
         protected bool IsMouseDown { get; set; }
         protected Brush SelectedBrush { get; set; }
+        protected Range HighlightRange { get; set; }
+
         public Thickness Padding { get; set; }
         public Dictionary<Rect, FormattedText> VisualWords { get; set; }
-        
+
+
+
 
         public TextCanvas()
         {
@@ -47,15 +52,22 @@ namespace TestMousePosToTextPointer
         {
             // Retrieve the coordinates of the mouse button event.
             IsMouseDown = true;
+            ClearSelection();
             StartSelectionPoint = e.GetPosition((UIElement)sender);
+            EndSelectionPoint = StartSelectionPoint;
+            Debug.WriteLine("Mouse Left Button Down");
             InvalidateVisual();
         }
         private void TextCanvasMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             // Retrieve the coordinates of the mouse button event.
-            IsMouseDown = false;
-            EndSelectionPoint = e.GetPosition((UIElement)sender);
-            InvalidateVisual();
+            if (IsMouseDown)
+            {
+                IsMouseDown = false;
+                EndSelectionPoint = e.GetPosition((UIElement)sender);
+                Debug.WriteLine("Mouse Left Button Up, " + HighlightRange);
+                InvalidateVisual();
+            }
         }
 
         protected void OnRender_old(DrawingContext drawingContext)
@@ -103,12 +115,12 @@ namespace TestMousePosToTextPointer
             if (IsMouseDown)
             {
                 // Build the geometry object that represents the text highlight.
-                var textGeometry = TextFormatter.BuildHighlightGeometry(StartSelectionPoint);
-                var textGeometry2 = TextFormatter.BuildGeometry(StartSelectionPoint);
+                var textGeometry = TextFormatter.BuildHighlightGeometry(StartSelectionPoint.Value);
+                var textGeometry2 = TextFormatter.BuildGeometry(StartSelectionPoint.Value);
 
                 var radius = 20;
                 drawingContext.DrawRectangle(null, new Pen(Brushes.Red, 1.0),
-                    new Rect(StartSelectionPoint.X - radius / 2, StartSelectionPoint.Y - radius / 2, radius, radius));
+                    new Rect(StartSelectionPoint.Value.X - radius / 2, StartSelectionPoint.Value.Y - radius / 2, radius, radius));
 
                 drawingContext.DrawGeometry(Brushes.DarkGray, new Pen(), textGeometry);
                 drawingContext.DrawGeometry(Brushes.Chartreuse, new Pen(), textGeometry2);
@@ -162,39 +174,58 @@ namespace TestMousePosToTextPointer
         {
             CreateFormattedWords();
             base.OnRender(dc);
-            foreach (var word in VisualWords)
-            {
-                dc.DrawText(word.Value, word.Key.Location);
-            }
+            foreach (var (rect, word) in VisualWords)
+                dc.DrawText(word, rect.Location);
 
-            if (IsMouseDown)
+            if (IsMouseDown || HighlightRange != null)
             {
                 HighlightSelectedText(dc);
             }
         }
 
+        public void ClearSelection()
+        {
+            HighlightRange = null;
+            StartSelectionPoint = null;
+            EndSelectionPoint = null;
+        }
+
+
         protected void HighlightSelectedText(DrawingContext dc)
         {
             var wordRects = VisualWords.Keys.ToList();
-            var rectComparer = new RectComparer();
-            var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), rectComparer);
-            var endWord = wordRects.BinarySearch(new Rect(EndSelectionPoint, new Size(1, 1)), rectComparer);
 
-            if (startWord < 0)
-                return;
-
-            if (endWord < 0)
+            if (StartSelectionPoint.HasValue && EndSelectionPoint.HasValue)
             {
-                if (rectComparer.Compare(wordRects.LastOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) < 0)
-                    endWord = wordRects.Count - 1;
-                else if (rectComparer.Compare(wordRects.FirstOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) > 0)
-                    endWord = 0;
-                else
+                var rectComparer = new RectComparer();
+                var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint.Value, new Size(1, 1)),
+                    rectComparer);
+                var endWord =
+                    wordRects.BinarySearch(new Rect(EndSelectionPoint.Value, new Size(1, 1)), rectComparer);
+
+                if (startWord < 0)
                     return;
+
+                if (endWord < 0)
+                {
+                    if (rectComparer.Compare(wordRects.LastOrDefault(),
+                            new Rect(EndSelectionPoint.Value, new Size(1, 1))) <
+                        0)
+                        endWord = wordRects.Count - 1;
+                    else if (rectComparer.Compare(wordRects.FirstOrDefault(),
+                                 new Rect(EndSelectionPoint.Value, new Size(1, 1))) > 0)
+                        endWord = 0;
+                    else
+                        return;
+                }
+
+                HighlightRange = new Range(startWord, endWord);
+                if (IsMouseDown == false)
+                    StartSelectionPoint = EndSelectionPoint = null;
             }
 
-            var from = Math.Min(startWord, endWord);
-            var to = Math.Max(startWord, endWord);
+            var from = Math.Min(HighlightRange.Start, HighlightRange.End);
+            var to = Math.Max(HighlightRange.Start, HighlightRange.End);
 
             for (var w = from; w <= to; w++)
             {
