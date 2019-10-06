@@ -1,5 +1,6 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,17 +11,10 @@ namespace TestMousePosToTextPointer
     public class TextCanvas : Canvas
     {
         public static readonly DependencyProperty TextProperty;
-        // Create a collection of child visual objects.
-        private readonly VisualCollection _children;
-        private FormattedText TextFormatter { get; set; }
-
-        // Provide a required override for the VisualChildrenCount property.
-        protected override int VisualChildrenCount => _children?.Count ?? 0;
-
+        protected FormattedText TextFormatter { get; set; }
         protected Point StartSelectionPoint { get; set; }
         protected Point EndSelectionPoint { get; set; }
-        protected bool MouseDown { get; set; } 
-
+        protected bool IsMouseDown { get; set; }
         public string Text
 
         {
@@ -28,8 +22,8 @@ namespace TestMousePosToTextPointer
 
             set { SetValue(TextProperty, value); }
         }
-
         public Thickness Padding { get; set; }
+        public Dictionary<Rect, FormattedText> VisualWords { get; set; }
 
         static TextCanvas()
         {
@@ -41,11 +35,8 @@ namespace TestMousePosToTextPointer
         public TextCanvas()
         {
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
-
-            //_children = new VisualCollection(this)
-            //{
-            //    CreateDrawingVisualText()
-            //};
+            VisualWords = new Dictionary<Rect, FormattedText>();
+            CreateFormattedWords();
 
             // Add the event handler for MouseLeftButtonUp.
             MouseLeftButtonUp += MyVisualHost_MouseLeftButtonUp;
@@ -58,7 +49,7 @@ namespace TestMousePosToTextPointer
         {
             // Retrieve the coordinates of the mouse button event.
             var pt = e.GetPosition((UIElement)sender);
-            MouseDown = true;
+            IsMouseDown = true;
             StartSelectionPoint = pt;
             InvalidateVisual();
 
@@ -71,7 +62,7 @@ namespace TestMousePosToTextPointer
         private void MyVisualHost_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             // Retrieve the coordinates of the mouse button event.
-            MouseDown = false;
+            IsMouseDown = false;
             EndSelectionPoint = e.GetPosition((UIElement)sender);
             InvalidateVisual();
 
@@ -88,9 +79,6 @@ namespace TestMousePosToTextPointer
             }
 
             return null;
-
-            //TextFormatter.BuildHighlightGeometry(hitTestParameters.HitPoint, 0, 10);
-            //return new PointHitTestResult(this, hitTestParameters.HitPoint);
         }
 
         protected override GeometryHitTestResult HitTestCore(GeometryHitTestParameters hitTestParameters)
@@ -99,9 +87,6 @@ namespace TestMousePosToTextPointer
             var geometry = new RectangleGeometry(VisualTreeHelper.GetDescendantBounds(this));
             return new GeometryHitTestResult
                 (this, geometry.FillContainsWithDetail(hitTestParameters.HitGeometry));
-
-            //InvalidateVisual();
-            //return base.HitTestCore(hitTestParameters);
         }
 
         // If a child visual object is hit, toggle its opacity to visually indicate a hit.
@@ -115,16 +100,6 @@ namespace TestMousePosToTextPointer
 
             // Stop the hit test enumeration of objects in the visual tree.
             return HitTestResultBehavior.Stop;
-        }
-
-        protected override Visual GetVisualChild(int index)
-        {
-            if (index < 0 || index >= _children.Count)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            return _children[index];
         }
 
         // Create a DrawingVisual that contains text.
@@ -183,7 +158,7 @@ namespace TestMousePosToTextPointer
             return drawingVisual;
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
+        protected void OnRender_old(DrawingContext drawingContext)
         {
             base.OnRender(drawingContext);
 
@@ -225,21 +200,108 @@ namespace TestMousePosToTextPointer
 
             // Draw the formatted text string to the DrawingContext of the control.
             drawingContext.DrawText(TextFormatter, new Point(Padding.Left, Padding.Top));
-            if (MouseDown)
+            if (IsMouseDown)
             {
                 // Build the geometry object that represents the text highlight.
                 var textGeometry = TextFormatter.BuildHighlightGeometry(StartSelectionPoint);
                 var textGeometry2 = TextFormatter.BuildGeometry(StartSelectionPoint);
-                
+
                 var radius = 20;
                 drawingContext.DrawRectangle(null, new Pen(Brushes.Red, 1.0),
-                    new Rect(StartSelectionPoint.X-radius/2, StartSelectionPoint.Y - radius / 2, radius, radius));
+                    new Rect(StartSelectionPoint.X - radius / 2, StartSelectionPoint.Y - radius / 2, radius, radius));
 
                 drawingContext.DrawGeometry(Brushes.DarkGray, new Pen(), textGeometry);
                 drawingContext.DrawGeometry(Brushes.Chartreuse, new Pen(), textGeometry2);
             }
 
             //---------------------------------------------------
+        }
+
+
+        protected void CreateFormattedWords()
+        {
+            VisualWords.Clear();
+            var text = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor";
+            var x = Padding.Left;
+            var y = Padding.Top;
+            var lineHeight = 35;
+            var spaceFormatter = new FormattedText(
+                " ",
+                CultureInfo.GetCultureInfo("en-us"),
+                FlowDirection.LeftToRight,
+                new Typeface("Arial"),
+                32,
+                Brushes.Black,
+                1);
+
+            var words = text.Split(' ');
+            var random = false;
+            foreach (var word in words)
+            {
+                // Create the initial formatted text string.
+                var textFormatter = new FormattedText(
+                    word,
+                    CultureInfo.GetCultureInfo("en-us"),
+                    FlowDirection.LeftToRight,
+                    new Typeface("Arial"),
+                    32,
+                    Brushes.Black, 1);
+
+                // Use an Italic font style beginning at the 28th character and continuing for 28 characters.
+                if (random)
+                    textFormatter.SetFontWeight(FontWeights.Bold, 0, word.Length);
+
+                random = !random;
+
+                if (x + textFormatter.Width > Width - Padding.Left - Padding.Right)
+                {
+                    y += lineHeight;// new line
+                    x = Padding.Left;
+                }
+
+                VisualWords.Add(new Rect(new Point(x, y), new Size(textFormatter.Width, lineHeight)), textFormatter);
+                x += textFormatter.Width;
+                VisualWords.Add(new Rect(new Point(x, y), new Size(spaceFormatter.WidthIncludingTrailingWhitespace, lineHeight)), spaceFormatter);
+                x += spaceFormatter.WidthIncludingTrailingWhitespace;
+            }
+        }
+
+        protected override void OnRender(DrawingContext dc)
+        {
+            CreateFormattedWords();
+            base.OnRender(dc);
+            foreach (var word in VisualWords)
+            {
+                dc.DrawText(word.Value, word.Key.Location);
+            }
+
+            if (IsMouseDown)
+            {
+                var wordRects = VisualWords.Keys.ToList();
+                var selectedWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), new RectComparer());
+                if(selectedWord < 0)
+                    return;
+
+                dc.DrawRectangle(null, new Pen(Brushes.Red, 1.0), wordRects[selectedWord]);
+            }
+        }
+    }
+    public class RectComparer : IComparer<Rect>
+    {
+        public int Compare(Rect r1, Rect r2)
+        {
+            var wordX = r1.Location.X;
+            var wordXW = r1.Location.X + r1.Width;
+            var wordY = r1.Location.Y;
+            var wordYH = r1.Location.Y + r1.Height;
+            var mouseX = r2.X;
+            var mouseY = r2.Y;
+
+            if (wordYH < mouseY) return -1;
+            if (mouseY < wordY) return 1;
+            if (wordXW < mouseX) return -1;
+            if (mouseX < wordX) return 1;
+            return 0;
         }
     }
 }
