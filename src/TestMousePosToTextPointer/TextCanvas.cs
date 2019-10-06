@@ -11,32 +11,19 @@ namespace TestMousePosToTextPointer
 {
     public class TextCanvas : Canvas
     {
-        public static readonly DependencyProperty TextProperty;
         protected FormattedText TextFormatter { get; set; }
         protected Point StartSelectionPoint { get; set; }
         protected Point EndSelectionPoint { get; set; }
         protected bool IsMouseDown { get; set; }
         protected Brush SelectedBrush { get; set; }
-        public string Text
-
-        {
-            get { return (string)GetValue(TextProperty); }
-
-            set { SetValue(TextProperty, value); }
-        }
         public Thickness Padding { get; set; }
         public Dictionary<Rect, FormattedText> VisualWords { get; set; }
-
-        static TextCanvas()
-        {
-            TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(TextCanvas),
-                new FrameworkPropertyMetadata("Default Text",
-                    FrameworkPropertyMetadataOptions.SubPropertiesDoNotAffectRender | FrameworkPropertyMetadataOptions.AffectsRender));
-        }
+        
 
         public TextCanvas()
         {
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
+            Cursor = Cursors.IBeam;
             VisualWords = new Dictionary<Rect, FormattedText>();
             CreateFormattedWords();
             SelectedBrush = new SolidColorBrush(Colors.DarkCyan) { Opacity = 0.5 };
@@ -47,6 +34,7 @@ namespace TestMousePosToTextPointer
             MouseMove += TextCanvasMouseMove;
         }
 
+
         private void TextCanvasMouseMove(object sender, MouseEventArgs e)
         {
             if (IsMouseDown)
@@ -55,20 +43,13 @@ namespace TestMousePosToTextPointer
                 InvalidateVisual();
             }
         }
-
-        // Capture the mouse event and hit test the coordinate point value against
-        // the child visual objects.
         private void TextCanvasMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // Retrieve the coordinates of the mouse button event.
-            var pt = e.GetPosition((UIElement)sender);
             IsMouseDown = true;
-            StartSelectionPoint = pt;
+            StartSelectionPoint = e.GetPosition((UIElement)sender);
             InvalidateVisual();
         }
-
-        // Capture the mouse event and hit test the coordinate point value against
-        // the child visual objects.
         private void TextCanvasMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             // Retrieve the coordinates of the mouse button event.
@@ -188,61 +169,47 @@ namespace TestMousePosToTextPointer
 
             if (IsMouseDown)
             {
-                var wordRects = VisualWords.Keys.ToList();
-                var rectComparer = new RectComparer();
-                var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), rectComparer);
-                var endWord = wordRects.BinarySearch(new Rect(EndSelectionPoint, new Size(1, 1)), rectComparer);
-
-                if (startWord < 0)
-                    return;
-
-                if (endWord < 0)
-                {
-                    if (rectComparer.Compare(wordRects.LastOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) < 0)
-                        endWord = wordRects.Count - 1;
-                    else if (rectComparer.Compare(wordRects.FirstOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) > 0)
-                        endWord = 0;
-                    else
-                        return;
-                }
-
-                var from = Math.Min(startWord, endWord);
-                var to = Math.Max(startWord, endWord);
-
-                for (var w = from; w <= to; w++)
-                {
-                    var currentWord = wordRects[w];
-                    var isFirstOfLineWord = w == from || !wordRects[w - 1].Y.Equals(currentWord.Y);
-
-                    if (isFirstOfLineWord == false)
-                    {
-                        var previousWord = wordRects[w - 1];
-                        var startX = previousWord.Location.X + previousWord.Width;
-                        var width = currentWord.Location.X - startX + currentWord.Width;
-                        currentWord = new Rect(new Point(startX, currentWord.Y), new Size(width, currentWord.Height));
-                    }
-                    dc.DrawRectangle(SelectedBrush, null, currentWord);
-                }
+                HighlightSelectedText(dc);
             }
         }
-    }
 
-    public class RectComparer : IComparer<Rect>
-    {
-        public int Compare(Rect r1, Rect r2)
+        protected void HighlightSelectedText(DrawingContext dc)
         {
-            var wordX = r1.Location.X;
-            var wordXW = r1.Location.X + r1.Width;
-            var wordY = r1.Location.Y;
-            var wordYH = r1.Location.Y + r1.Height;
-            var mouseX = r2.X;
-            var mouseY = r2.Y;
+            var wordRects = VisualWords.Keys.ToList();
+            var rectComparer = new RectComparer();
+            var startWord = wordRects.BinarySearch(new Rect(StartSelectionPoint, new Size(1, 1)), rectComparer);
+            var endWord = wordRects.BinarySearch(new Rect(EndSelectionPoint, new Size(1, 1)), rectComparer);
 
-            if (wordYH < mouseY) return -1;
-            if (mouseY < wordY) return 1;
-            if (wordXW < mouseX) return -1;
-            if (mouseX < wordX) return 1;
-            return 0;
+            if (startWord < 0)
+                return;
+
+            if (endWord < 0)
+            {
+                if (rectComparer.Compare(wordRects.LastOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) < 0)
+                    endWord = wordRects.Count - 1;
+                else if (rectComparer.Compare(wordRects.FirstOrDefault(), new Rect(EndSelectionPoint, new Size(1, 1))) > 0)
+                    endWord = 0;
+                else
+                    return;
+            }
+
+            var from = Math.Min(startWord, endWord);
+            var to = Math.Max(startWord, endWord);
+
+            for (var w = from; w <= to; w++)
+            {
+                var currentWord = wordRects[w];
+                var isFirstOfLineWord = w == from || !wordRects[w - 1].Y.Equals(currentWord.Y);
+
+                if (isFirstOfLineWord == false)
+                {
+                    var previousWord = wordRects[w - 1];
+                    var startX = previousWord.Location.X + previousWord.Width;
+                    var width = currentWord.Location.X - startX + currentWord.Width;
+                    currentWord = new Rect(new Point(startX, currentWord.Y), new Size(width, currentWord.Height));
+                }
+                dc.DrawRectangle(SelectedBrush, null, currentWord);
+            }
         }
     }
 }

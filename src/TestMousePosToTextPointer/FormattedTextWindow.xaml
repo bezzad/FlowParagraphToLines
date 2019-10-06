@@ -10,13 +10,7 @@
     <Grid>
         <local:TextCanvas Width="{Binding ElementName=MainForm, Mode=TwoWay, Path=Width}"
                           Height="{Binding ElementName=MainForm, Mode=TwoWay, Path=Height}"
-                          Padding="20">
-            <local:TextCanvas.Resources>
-                <Style TargetType="local:TextCanvas">
-                    <Setter Property="Text" Value="Test"/>
-                    <Setter Property="Background" Value="AntiqueWhite"/>
-                </Style>
-            </local:TextCanvas.Resources>
+                          Background="AntiqueWhite" Padding="20">
         </local:TextCanvas>
     </Grid>
 </Window>
