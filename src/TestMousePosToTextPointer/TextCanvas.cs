@@ -16,6 +16,7 @@ namespace TestMousePosToTextPointer
         protected Point StartSelectionPoint { get; set; }
         protected Point EndSelectionPoint { get; set; }
         protected bool IsMouseDown { get; set; }
+        protected Brush SelectedBrush { get; set; }
         public string Text
 
         {
@@ -38,6 +39,7 @@ namespace TestMousePosToTextPointer
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
             VisualWords = new Dictionary<Rect, FormattedText>();
             CreateFormattedWords();
+            SelectedBrush = new SolidColorBrush(Colors.DarkCyan) {Opacity = 0.5};
 
             // Add the event handler for MouseLeftButtonUp.
             MouseLeftButtonUp += TextCanvasMouseLeftButtonUp;
@@ -213,7 +215,7 @@ namespace TestMousePosToTextPointer
 
                 for (; from <= to; from++)
                 {
-                    dc.DrawRectangle(null, new Pen(Brushes.Red, 1.0), wordRects[from]);
+                    dc.DrawRectangle(SelectedBrush, null, wordRects[from]);
                 }
             }
         }
