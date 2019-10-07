@@ -5,9 +5,12 @@ namespace TestMousePosToTextPointer
 {
     public class RectComparer : IComparer<Rect>
     {
+        public double ImpressivePaddingPercent { get; set; } = 0.2; // 20% of word length
+
         public int Compare(Rect leftRect, Rect rightRect)
         {
-            var wordX = leftRect.Location.X;
+            var impressivePadding = ImpressivePaddingPercent * leftRect.Width;
+            var wordX = leftRect.Location.X + impressivePadding;
             var wordXw = leftRect.Location.X + leftRect.Width;
             var wordY = leftRect.Location.Y;
             var wordYh = leftRect.Location.Y + leftRect.Height;

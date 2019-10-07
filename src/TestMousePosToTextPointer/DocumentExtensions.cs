@@ -143,19 +143,6 @@ namespace TestMousePosToTextPointer
         {
             var lines = new List<string>();
             var offsetRanges = new List<(int, int)>();
-//            var document = flowDocument.Clone(width);
-//            var p = new Paragraph(new Run(content));
-//            p.FontFamily = ArialFontFamily;
-//            p.FontSize = document.FontSize;
-//            p.FontStyle = FontStyles.Normal;
-//            p.TextAlignment = document.TextAlignment;
-//            p.LineHeight = document.LineHeight;
-//            p.LineStackingStrategy = document.LineStackingStrategy;
-//            p.Foreground = Brushes.Black;
-//            p.Language = document.Language;
-//            p.FontWeight = document.FontWeight;
-//            document.Blocks.Add(new Paragraph(new Run(content)));
-
             var offset = 0;
             var startTextPointer = document.ContentStart;
             var startPoint = startTextPointer.GetCharacterRect(LogicalDirection.Backward).Location;

@@ -22,9 +22,7 @@ namespace TestMousePosToTextPointer
         public Thickness Padding { get; set; }
         public Dictionary<Rect, FormattedText> VisualWords { get; set; }
 
-
-
-
+        
         public TextCanvas()
         {
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
@@ -69,66 +67,6 @@ namespace TestMousePosToTextPointer
                 InvalidateVisual();
             }
         }
-
-        protected void OnRender_old(DrawingContext drawingContext)
-        {
-            base.OnRender(drawingContext);
-
-            //---------------------------------------------------
-            var testString = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor";
-
-            // Create the initial formatted text string.
-            TextFormatter = new FormattedText(
-                testString,
-                CultureInfo.GetCultureInfo("en-us"),
-                FlowDirection.LeftToRight,
-                new Typeface("Arial"),
-                32,
-                Brushes.Black, 1)
-            {
-                MaxTextWidth = Width - Padding.Left - Padding.Right,
-                MaxTextHeight = Height - Padding.Top - Padding.Bottom
-            };
-
-            // Set a maximum width and height. If the text overflows these values, an ellipsis "..." appears.
-
-            // Use a larger font size beginning at the first (zero-based) character and continuing for 5 characters.
-            // The font size is calculated in terms of points -- not as device-independent pixels.
-            TextFormatter.SetFontSize(36 * (96.0 / 72.0), 0, 5);
-
-            // Use a Bold font weight beginning at the 6th character and continuing for 11 characters.
-            TextFormatter.SetFontWeight(FontWeights.Bold, 6, 11);
-
-            // Use a linear gradient brush beginning at the 6th character and continuing for 11 characters.
-            TextFormatter.SetForegroundBrush(
-                new LinearGradientBrush(
-                    Colors.Orange,
-                    Colors.Teal,
-                    90.0),
-                6, 11);
-
-            // Use an Italic font style beginning at the 28th character and continuing for 28 characters.
-            TextFormatter.SetFontStyle(FontStyles.Italic, 28, 28);
-
-            // Draw the formatted text string to the DrawingContext of the control.
-            drawingContext.DrawText(TextFormatter, new Point(Padding.Left, Padding.Top));
-            if (IsMouseDown)
-            {
-                // Build the geometry object that represents the text highlight.
-                var textGeometry = TextFormatter.BuildHighlightGeometry(StartSelectionPoint.Value);
-                var textGeometry2 = TextFormatter.BuildGeometry(StartSelectionPoint.Value);
-
-                var radius = 20;
-                drawingContext.DrawRectangle(null, new Pen(Brushes.Red, 1.0),
-                    new Rect(StartSelectionPoint.Value.X - radius / 2, StartSelectionPoint.Value.Y - radius / 2, radius, radius));
-
-                drawingContext.DrawGeometry(Brushes.DarkGray, new Pen(), textGeometry);
-                drawingContext.DrawGeometry(Brushes.Chartreuse, new Pen(), textGeometry2);
-            }
-
-            //---------------------------------------------------
-        }
-
 
         protected void CreateFormattedWords()
         {
@@ -196,7 +134,7 @@ namespace TestMousePosToTextPointer
             var rectComparer = new RectComparer();
             var wordRects = VisualWords.Keys.ToList();
 
-            int getCorrectWordIndex(Point selectedPoint, bool forceToFind = false)
+            int GetCorrectWordIndex(Point selectedPoint, bool forceToFind = false)
             {
                 var selectedRect = new Rect(selectedPoint, new Size(1, 1));
                 var result = 0;
@@ -208,6 +146,17 @@ namespace TestMousePosToTextPointer
                 else
                     result = wordRects.BinarySearch(selectedRect, rectComparer);
 
+                //if (result < 0)
+                //{
+                //    if (forceToNext)
+                //        selectedPoint.X += 10;
+
+                //    if (forceToPrevious)
+                //        selectedPoint.X -= 10;
+
+                //    if (selectedPoint.X * 2 > Padding.Left + Padding.Right && selectedPoint.X < Width)
+                //        return GetCorrectWordIndex(selectedPoint, forceToNext, forceToPrevious);
+                //}
 #if DEBUG
                 if (result < 0)
                     dc.DrawEllipse(Brushes.Red, null, selectedRect.Location, 5, 5);
@@ -216,16 +165,17 @@ namespace TestMousePosToTextPointer
                 return result;
             }
 
-            if (StartSelectionPoint.HasValue && EndSelectionPoint.HasValue)
+            if (StartSelectionPoint.HasValue && EndSelectionPoint.HasValue && StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) != 0)
             {
-                var startWord = getCorrectWordIndex(StartSelectionPoint.Value);
-                var endWord = getCorrectWordIndex(EndSelectionPoint.Value);
+                var forceToFind = StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) > 0;
+                var startWord = GetCorrectWordIndex(StartSelectionPoint.Value);
+                var endWord = GetCorrectWordIndex(EndSelectionPoint.Value);
 
                 if (startWord < 0 && endWord >= 0) // startWord is out but endWord is in correct range
-                    startWord = getCorrectWordIndex(StartSelectionPoint.Value, true);
+                    startWord = GetCorrectWordIndex(StartSelectionPoint.Value, true);
 
                 if (endWord < 0 && startWord >= 0) // endWord is out but startWord is in correct range
-                    endWord = getCorrectWordIndex(EndSelectionPoint.Value, true);
+                    endWord = GetCorrectWordIndex(EndSelectionPoint.Value, true);
 
                 if ((startWord < 0 || endWord < 0) == false)
                 {
