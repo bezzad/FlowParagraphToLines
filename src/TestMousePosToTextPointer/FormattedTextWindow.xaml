@@ -5,12 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TestMousePosToTextPointer"
         mc:Ignorable="d"
-        Name="MainForm"
-        Title="FormattedTextWindow" Height="450" Width="800">
+        Title="FormattedTextWindow" Height="473" Width="800">
     <Grid>
-        <local:TextCanvas Width="{Binding ElementName=MainForm, Mode=TwoWay, Path=Width}"
-                          Height="{Binding ElementName=MainForm, Mode=TwoWay, Path=Height}"
-                          Background="AntiqueWhite" Padding="20">
-        </local:TextCanvas>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+        <local:TextCanvas Grid.Row="0" x:Name="Reader" Background="AntiqueWhite" Padding="20"></local:TextCanvas>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Background="Azure" >
+            <RadioButton Margin="10" IsChecked="True" Checked="TextAlignChanged">Left Align</RadioButton>
+            <RadioButton Margin="10" Checked="TextAlignChanged">Center Align</RadioButton>
+            <RadioButton Margin="10" Checked="TextAlignChanged">Right Align</RadioButton>
+            <RadioButton Margin="10" Checked="TextAlignChanged">Justify</RadioButton>
+            <GridSplitter Width="2" Background="Black"></GridSplitter>
+            <Label Margin="10,5,0,5">FontSize:</Label>
+            <TextBox Name="TxtFontSize" Margin="0,5,10,5" Padding="5" Text="{Binding Reader.FontSize}"></TextBox>
+            <Label Margin="10,5,0,5">LineHeight</Label>
+            <TextBox Name="TxtLineHeight"  Margin="0,5,10,5" Padding="5" Text="{Binding Reader.LineHeight}"></TextBox>
+        </StackPanel>
     </Grid>
 </Window>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -10,8 +11,6 @@ using System.Windows.Media;
 
 namespace TestMousePosToTextPointer
 {
-
-
     public class TextCanvas : Canvas
     {
         protected static Point EmptyPoint = new Point(0, 0);
@@ -22,6 +21,9 @@ namespace TestMousePosToTextPointer
         protected Range HighlightRange { get; set; }
 
         public Thickness Padding { get; set; }
+        public int LineHeight { get; set; } = 25;
+        public double FontSize { get; set; } = 24;
+        public TextAlignment TextAlignment { get; set; } = TextAlignment.Right;
         public List<WordInfo> DrawnWords { get; set; }
 
 
@@ -37,7 +39,6 @@ namespace TestMousePosToTextPointer
             MouseLeftButtonDown += TextCanvasMouseLeftButtonDown;
             MouseMove += TextCanvasMouseMove;
         }
-
 
         private void TextCanvasMouseMove(object sender, MouseEventArgs e)
         {
@@ -81,7 +82,7 @@ namespace TestMousePosToTextPointer
             ProcessContent(ltrText, false, ref offset, ref startPoint);
 
             startPoint.Y += lineHeight;// new line
-            startPoint.X = Width - Padding.Right;
+            startPoint.X = ActualWidth - Padding.Right;
 
             ProcessContent(rtlText, true, ref offset, ref startPoint);
         }
@@ -113,13 +114,13 @@ namespace TestMousePosToTextPointer
                 var wordW = wordFormatter.Width;
                 var newLineNeeded = isRtl
                     ? (startPoint.X - wordW < Padding.Left)
-                    : (startPoint.X + wordW > Width - Padding.Right);
+                    : (startPoint.X + wordW > ActualWidth - Padding.Right);
 
                 if (newLineNeeded)
                 {
                     startPoint.Y += lineHeight;// new line
                     startPoint.X = isRtl
-                        ? Width - Padding.Right
+                        ? ActualWidth - Padding.Right
                         : Padding.Left;
                 }
 
@@ -136,6 +137,9 @@ namespace TestMousePosToTextPointer
         protected override void OnRender(DrawingContext dc)
         {
             base.OnRender(dc);
+
+            if (DesignerProperties.GetIsInDesignMode(this))
+                return;
 
             CreateFormattedWords();
             foreach (var word in DrawnWords)
@@ -155,6 +159,7 @@ namespace TestMousePosToTextPointer
             HighlightRange = null;
             EndSelectionPoint = StartSelectionPoint = EmptyPoint;
         }
+        public void Render() { InvalidateVisual(); }
 
 
         protected void HighlightSelectedText(DrawingContext dc)
