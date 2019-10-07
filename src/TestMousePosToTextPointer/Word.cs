@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Media;
 
 namespace TestMousePosToTextPointer
 {
-    public class Word
+    public abstract class Word
     {
-        public Word(FormattedText format, Point drawPoint, Rect area, int offset)
+        protected Word(FormattedText format, Point drawPoint, Rect area, int offset)
         {
             Format = format;
             DrawPoint = drawPoint;
@@ -24,12 +23,14 @@ namespace TestMousePosToTextPointer
 
         public string Text => Format.Text;
         public int Offset => OffsetRange.Start;
+        public double Width => Area.Size.Width;
+        public double Height => Area.Size.Height;
         public bool IsRtl => Format.FlowDirection == FlowDirection.RightToLeft;
     }
 
     public class WordInfo : Word, IComparable<Point>
     {
-        public WordInfo(FormattedText format, Point drawPoint, Rect area, int offset) 
+        public WordInfo(FormattedText format, Point drawPoint, Rect area, int offset)
             : base(format, drawPoint, area, offset) { }
 
         public int CompareTo([AllowNull] Point other)
