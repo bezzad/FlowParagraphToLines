@@ -10,25 +10,28 @@ using System.Windows.Media;
 
 namespace TestMousePosToTextPointer
 {
+    
+
     public class TextCanvas : Canvas
     {
-        protected FormattedText TextFormatter { get; set; }
-        protected Point? StartSelectionPoint { get; set; }
-        protected Point? EndSelectionPoint { get; set; }
+        protected static Point EmptyPoint = new Point(0, 0);
+        protected Point StartSelectionPoint { get; set; }
+        protected Point EndSelectionPoint { get; set; }
         protected bool IsMouseDown { get; set; }
         protected Brush SelectedBrush { get; set; }
         protected Range HighlightRange { get; set; }
 
         public Thickness Padding { get; set; }
         public Dictionary<Rect, FormattedText> VisualWords { get; set; }
+        public List<WordInfo> DrawnWords { get; set; }
 
-        
+
         public TextCanvas()
         {
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
             Cursor = Cursors.IBeam;
             VisualWords = new Dictionary<Rect, FormattedText>();
-            CreateFormattedWords();
+            DrawnWords = new List<WordInfo>();
             SelectedBrush = new SolidColorBrush(Colors.DarkCyan) { Opacity = 0.5 };
 
             // Add the event handler for MouseLeftButtonUp.
@@ -71,49 +74,106 @@ namespace TestMousePosToTextPointer
         protected void CreateFormattedWords()
         {
             VisualWords.Clear();
-            var text = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor";
-            var x = Padding.Left;
-            var y = Padding.Top;
+            var ltrText = @"Lorem ipsum dolor i sit a amet, an consectetur adipisicing elit, sed do eiusmod tempor";
+            var rtlText = @"یکی از اساسی‌ترین کتاب‌های تاریخ معاصر ایران یادداشت‌های امیراسدالله اعلم است که بعضی از وقایع رژیم گذشته را بازگو می‌کند. هم این مسئله و هم مسئله دیگری سبب شد تا انگیزه اجرای جدیدی از این اثر شکل بگیرد. از اینرو درصدد بر آمدیم ۷جلد منتشر شده یادداشت‌ها را طوری تنظیم کنیم که دارای حجم کمتر با قابلیت بیشتر باشد. برای اینکار بدون توجهّ به انتشار سال ۱۳۴۶ جلد ۷، یادداشت‌ها را به ترتیب زمانی تنظیم کردیم. یعنی جلد ۷ که سال ۱۳۴۶ میباشد در ابتدای مجموعه قرار داده‌ایم و به ترتیب جلدهای ۱ تا ۶ به دنبال آن. کارهای انجام شده عبارتند از: ۱ جلد ۷ که به ابتدای مجموعه منتقل شد دارای اشتباهاتی در تاریخ و در متن و اشعار داشت که اصلاح شد و تاریخ‌ها تماماً به صورت روز/ ماه/ سال- عددی- مرتب شده. ۲ یادداشت ناشر و دیباچه و یادداشت‌های توضیحی ویراستار در اول مجموعه، قبل از یادداشت‌های سال ۴۶ آورده شده است. ۳ ارجاعات هم با تاریخ یادداشت‌ها و هم با صفحه‌ی مربوطه آورده شده. برای مثال ۲/۲۲ /۴۶ صفحه ۱۲۸ ۴ کل مجموعه در دو دفتر در حجم تقریباً مساوی تنظیم شده. نمایندگی نامزد‌های متعددّی می‌توانند با یکدیگر مبارزه کنند و در این چارچوب انتخابات آزادانه برگزار می‌شود. در این زمینه علم داستان پرمعنایی را نقل می‌کند که سرزده با همسرش به حوزه‌ای برای نام‌نویسی و دریافت کارت الکترال می‌روند و با جمعیّت انبوهی رو‌به‌رو می‌شوندکه به او می‌گویند چون امر شاه است، می‌خواهند کارت الکترال بگیرند و در انتخابات شرکت کنند. علم روز بعد این داستان را برای شاه می‌گوید '...شاهنشاه تعجّب فرمودند.بعد فرمودند حالا معلوم نیست این‌ها به کی رأی بدهند... برای یک لحظه شاه را نگران یافتم...' ( یادداشت ۲۸ خرداد ۱۳۵۴) . ولی جایی برای نگرانی نبود و دستگاه حزبی ـ دولتی، ترتیبی داده بود که نتیجه انتخابات تفاوتی با گذشته نداشته باشد. در این گیرودار شاه در هر فرصتی یادآور می‌شد که به هر حال این تحوّلات را نباید به معناًی آغاز دموکراسی و کاهش اختیارات او پنداشت و رسانه‌های گروهی نیز موظّف بودند این نکته را خوب به همه بفهمانند. به عنوان نمونه ظاهراًً خواننده‌ای در نامه‌ای به روزنامه اطّلاعات می‌پرسد";
+            var startPoint = new Point(Padding.Left, Padding.Top);
+            var lineHeight = 35;
+
+            ProcessLtrContent(ltrText, ref startPoint);
+
+            startPoint.Y += lineHeight;// new line
+            startPoint.X = Width - Padding.Right;
+
+            ProcessRtlContent(rtlText, ref startPoint);
+        }
+
+        protected void ProcessLtrContent(string content, ref Point startPoint)
+        {
             var lineHeight = 35;
             var spaceWidth = 5;
-
-            var words = text.Split(' ');
+            var fontSize = 24;
             var random = false;
+
+            var words = content.Split(' ');
             foreach (var word in words)
             {
                 // Create the initial formatted text string.
-                var textFormatter = new FormattedText(
+                var wordFormatter = new FormattedText(
                     word,
                     CultureInfo.GetCultureInfo("en-us"),
                     FlowDirection.LeftToRight,
                     new Typeface("Arial"),
-                    32,
+                    fontSize,
                     Brushes.Black, 1);
 
-                // Use an Italic font style beginning at the 28th character and continuing for 28 characters.
-                if (random)
-                    textFormatter.SetFontWeight(FontWeights.Bold, 0, word.Length);
-
+                // Use an Bold font style beginning at the 28th character and continuing for 28 characters.
                 random = !random;
+                if (random)
+                    wordFormatter.SetFontWeight(FontWeights.Bold, 0, word.Length);
 
-                if (x + textFormatter.Width > Width - Padding.Left - Padding.Right)
+                var wordW = wordFormatter.Width;
+                if (startPoint.X + wordW > Width - Padding.Right)
                 {
-                    y += lineHeight;// new line
-                    x = Padding.Left;
+                    startPoint.Y += lineHeight;// new line
+                    startPoint.X = Padding.Left;
                 }
 
-                VisualWords.Add(new Rect(new Point(x, y), new Size(textFormatter.Width, lineHeight)), textFormatter);
-                x += textFormatter.Width;
-                x += spaceWidth;
+                VisualWords.Add(new Rect(startPoint, new Size(wordW, lineHeight)), wordFormatter);
+                startPoint.X += wordW;
+                startPoint.X += spaceWidth;
             }
         }
 
+        protected void ProcessRtlContent(string content, ref Point startPoint)
+        {
+            var lineHeight = 35;
+            var spaceWidth = 5;
+            var fontSize = 24;
+            var random = false;
+
+            var words = content.Split(' ');
+            foreach (var word in words)
+            {
+                // Create the initial formatted text string.
+                var wordFormatter = new FormattedText(
+                    word,
+                    CultureInfo.GetCultureInfo("fa-IR"),
+                    FlowDirection.RightToLeft,
+                    new Typeface("Arial"),
+                    fontSize,
+                    Brushes.Black, 1);
+
+                // Use an Bold font style beginning at the 28th character and continuing for 28 characters.
+                random = !random;
+                if (random)
+                    wordFormatter.SetFontWeight(FontWeights.Bold, 0, word.Length);
+
+                var wordW = wordFormatter.Width;
+                if (startPoint.X - wordW < Padding.Left)
+                {
+                    startPoint.Y += lineHeight; // new line
+                    startPoint.X = Width - Padding.Right;
+                }
+
+                VisualWords.Add(new Rect(startPoint, new Size(wordW, lineHeight)), wordFormatter);
+                startPoint.X -= wordW;
+                startPoint.X -= spaceWidth;
+            }
+        }
+
+
+
+
         protected override void OnRender(DrawingContext dc)
         {
-            CreateFormattedWords();
             base.OnRender(dc);
+
+            CreateFormattedWords();
             foreach (var (rect, word) in VisualWords)
+            {
                 dc.DrawText(word, rect.Location);
+                dc.DrawRectangle(null, new Pen(Brushes.Red, 1), rect);
+            }
 
             if (IsMouseDown || HighlightRange != null)
             {
@@ -124,8 +184,7 @@ namespace TestMousePosToTextPointer
         public void ClearSelection()
         {
             HighlightRange = null;
-            StartSelectionPoint = null;
-            EndSelectionPoint = null;
+            EndSelectionPoint = StartSelectionPoint = EmptyPoint;
         }
 
 
@@ -153,23 +212,23 @@ namespace TestMousePosToTextPointer
                 return result;
             }
 
-            if (StartSelectionPoint.HasValue && EndSelectionPoint.HasValue && StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) != 0)
+            if (StartSelectionPoint.CompareTo(EndSelectionPoint) != 0)
             {
                 //var forceToFind = StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) > 0;
-                var startWord = GetCorrectWordIndex(StartSelectionPoint.Value);
-                var endWord = GetCorrectWordIndex(EndSelectionPoint.Value);
+                var startWord = GetCorrectWordIndex(StartSelectionPoint);
+                var endWord = GetCorrectWordIndex(EndSelectionPoint);
 
                 if (startWord < 0 && endWord >= 0) // startWord is out of word bound but endWord is in correct range
-                    startWord = GetCorrectWordIndex(StartSelectionPoint.Value);
+                    startWord = GetCorrectWordIndex(StartSelectionPoint);
 
                 if (endWord < 0 && startWord >= 0) // endWord is out of word bound but startWord is in correct range
-                    endWord = GetCorrectWordIndex(EndSelectionPoint.Value);
+                    endWord = GetCorrectWordIndex(EndSelectionPoint);
 
                 if ((startWord < 0 || endWord < 0) == false)
                     HighlightRange = new Range(startWord, endWord);
 
                 if (IsMouseDown == false)
-                    StartSelectionPoint = EndSelectionPoint = null;
+                    StartSelectionPoint = EndSelectionPoint = EmptyPoint;
             }
 
             if (HighlightRange == null)
