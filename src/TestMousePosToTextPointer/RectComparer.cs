@@ -11,7 +11,7 @@ namespace TestMousePosToTextPointer
         {
             var impressivePadding = ImpressivePaddingPercent * leftRect.Width;
             var wordX = leftRect.Location.X + impressivePadding;
-            var wordXw = leftRect.Location.X + leftRect.Width;
+            var wordXw = leftRect.Location.X + leftRect.Width - impressivePadding;
             var wordY = leftRect.Location.Y;
             var wordYh = leftRect.Location.Y + leftRect.Height;
             var mouseX = rightRect.X;

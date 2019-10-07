@@ -134,29 +134,17 @@ namespace TestMousePosToTextPointer
             var rectComparer = new RectComparer();
             var wordRects = VisualWords.Keys.ToList();
 
-            int GetCorrectWordIndex(Point selectedPoint, bool forceToFind = false)
+            int GetCorrectWordIndex(Point selectedPoint)
             {
                 var selectedRect = new Rect(selectedPoint, new Size(1, 1));
-                var result = 0;
+                var result = -1;
 
-                if (forceToFind && rectComparer.Compare(wordRects.LastOrDefault(), selectedRect) < 0)
+                if (rectComparer.Compare(wordRects.LastOrDefault(), selectedRect) < 0)
                     result = wordRects.Count - 1;
-                else if (forceToFind && rectComparer.Compare(wordRects.FirstOrDefault(), selectedRect) > 0)
+                else if (rectComparer.Compare(wordRects.FirstOrDefault(), selectedRect) > 0)
                     result = 0;
                 else
                     result = wordRects.BinarySearch(selectedRect, rectComparer);
-
-                //if (result < 0)
-                //{
-                //    if (forceToNext)
-                //        selectedPoint.X += 10;
-
-                //    if (forceToPrevious)
-                //        selectedPoint.X -= 10;
-
-                //    if (selectedPoint.X * 2 > Padding.Left + Padding.Right && selectedPoint.X < Width)
-                //        return GetCorrectWordIndex(selectedPoint, forceToNext, forceToPrevious);
-                //}
 #if DEBUG
                 if (result < 0)
                     dc.DrawEllipse(Brushes.Red, null, selectedRect.Location, 5, 5);
@@ -167,20 +155,18 @@ namespace TestMousePosToTextPointer
 
             if (StartSelectionPoint.HasValue && EndSelectionPoint.HasValue && StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) != 0)
             {
-                var forceToFind = StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) > 0;
+                //var forceToFind = StartSelectionPoint.Value.CompareTo(EndSelectionPoint.Value) > 0;
                 var startWord = GetCorrectWordIndex(StartSelectionPoint.Value);
                 var endWord = GetCorrectWordIndex(EndSelectionPoint.Value);
 
-                if (startWord < 0 && endWord >= 0) // startWord is out but endWord is in correct range
-                    startWord = GetCorrectWordIndex(StartSelectionPoint.Value, true);
+                if (startWord < 0 && endWord >= 0) // startWord is out of word bound but endWord is in correct range
+                    startWord = GetCorrectWordIndex(StartSelectionPoint.Value);
 
-                if (endWord < 0 && startWord >= 0) // endWord is out but startWord is in correct range
-                    endWord = GetCorrectWordIndex(EndSelectionPoint.Value, true);
+                if (endWord < 0 && startWord >= 0) // endWord is out of word bound but startWord is in correct range
+                    endWord = GetCorrectWordIndex(EndSelectionPoint.Value);
 
                 if ((startWord < 0 || endWord < 0) == false)
-                {
                     HighlightRange = new Range(startWord, endWord);
-                }
 
                 if (IsMouseDown == false)
                     StartSelectionPoint = EndSelectionPoint = null;
