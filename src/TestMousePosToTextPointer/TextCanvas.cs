@@ -199,7 +199,7 @@ namespace TestMousePosToTextPointer
                 else if (DrawnWords.FirstOrDefault()?.CompareTo(selectedPoint) > 0)
                     result = 0;
                 else
-                    result = DrawnWords.FindIndex(w => w.CompareTo(selectedPoint) == 0); // wordRects.BinarySearch(selectedRect, rectComparer);
+                    result = DrawnWords.BinarySearch(selectedPoint); // DrawnWords.FindIndex(w => w.CompareTo(selectedPoint) == 0); 
 #if DEBUG
                 if (result < 0)
                     dc.DrawEllipse(Brushes.Red, null, selectedPoint, 5, 5);
