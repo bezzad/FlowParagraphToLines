@@ -25,6 +25,9 @@
             <GridSplitter Width="1" Background="Gray"></GridSplitter>
             <Label Margin="10,5,0,5">Line Height</Label>
             <ComboBox Name="CmbLineHeight" Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=LineHeight, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
+            <GridSplitter Width="1" Background="Gray"></GridSplitter>
+            <ToggleButton Name="BtnLtrSample" Margin="10,5,0,5" Checked="BtnLtrSampleChecked">Ltr Sample</ToggleButton>
+            <ToggleButton Name="BtnRtlSample"  Margin="10,5,0,5" Checked="BtnRtlSampleChecked">Rtl Sample</ToggleButton>
         </StackPanel>
     </Grid>
 </Window>

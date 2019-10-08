@@ -23,13 +23,32 @@ namespace SvgTextViewer
             CmbFontSize.SelectedIndex = 10;
             CmbLineHeight.ItemsSource = new List<double>() { 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72, 96 };
             CmbLineHeight.SelectedIndex = 10;
-            Reader.PageContent = Path.Combine(Environment.CurrentDirectory, "ContentSample.txt").GetWords();
+
+            BtnRtlSampleChecked(this, null);
 
             DpiChanged += delegate
             {
                 Reader.PixelsPerDip = GraphicsHelper.PixelsPerDip(this);
                 Reader.Render();
             };
+        }
+
+        private void BtnLtrSampleChecked(object sender, RoutedEventArgs e)
+        {
+            Reader.PageContent = Path.Combine(Environment.CurrentDirectory, "Data\\LtrContentSample.txt").GetWords(false);
+            BtnLtrSample.IsChecked = true;
+            BtnRtlSample.IsChecked = false;
+            Reader.IsContentRtl = false;
+            Reader.Render();
+        }
+
+        private void BtnRtlSampleChecked(object sender, RoutedEventArgs e)
+        {
+            Reader.PageContent = Path.Combine(Environment.CurrentDirectory, "Data\\RtlContentSample.txt").GetWords(true);
+            BtnRtlSample.IsChecked = true;
+            BtnLtrSample.IsChecked = false;
+            Reader.IsContentRtl = true;
+            Reader.Render();
         }
     }
 }

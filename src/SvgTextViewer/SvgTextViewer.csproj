@@ -7,11 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ContentSample.txt" />
+    <None Remove="LtrContentSample.txt" />
+    <None Remove="RtlContentSample.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="ContentSample.txt">
+    <Content Include="Data\LtrContentSample.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\RtlContentSample.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

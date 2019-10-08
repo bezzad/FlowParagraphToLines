@@ -20,7 +20,22 @@ namespace SvgTextViewer.TextCanvas
             "FontFamily", typeof(FontFamily), typeof(BaseTextViewer), new PropertyMetadata(default(FontFamily)));
         public static readonly DependencyProperty ShowWireFrameProperty = DependencyProperty.Register(
             "ShowWireFrame", typeof(bool), typeof(BaseTextViewer), new PropertyMetadata(default(bool)));
+        public static readonly DependencyProperty ParagraphSpaceProperty = DependencyProperty.Register(
+            "ParagraphSpace", typeof(double), typeof(BaseTextViewer), new PropertyMetadata(default(double)));
 
+        public static readonly DependencyProperty IsContentRtlProperty = DependencyProperty.Register(
+            "IsContentRtl", typeof(bool), typeof(BaseTextViewer), new PropertyMetadata(default(bool)));
+
+        public bool IsContentRtl
+        {
+            get => (bool) GetValue(IsContentRtlProperty);
+            set => SetValue(IsContentRtlProperty, value);
+        }
+        public double ParagraphSpace
+        {
+            get => (double) GetValue(ParagraphSpaceProperty);
+            set => SetValue(ParagraphSpaceProperty, value);
+        }
         public bool ShowWireFrame
         {
             get => (bool) GetValue(ShowWireFrameProperty);
@@ -41,6 +56,7 @@ namespace SvgTextViewer.TextCanvas
             get => (int)GetValue(LineHeightProperty);
             set => SetValue(LineHeightProperty, value);
         }
+        
         public bool IsJustify
         {
             get => (bool)GetValue(IsJustifyProperty);
@@ -57,6 +73,7 @@ namespace SvgTextViewer.TextCanvas
         public List<List<WordInfo>> PageContent { get; set; }
         public List<WordInfo> DrawWords { get; set; }
         public double PixelsPerDip { get; set; }
+        
 
 
         protected BaseTextViewer()
@@ -67,6 +84,7 @@ namespace SvgTextViewer.TextCanvas
             LtrCulture = CultureInfo.GetCultureInfo("en-us");
             DrawWords = new List<WordInfo>();
             PixelsPerDip = GraphicsHelper.PixelsPerDip(this);
+            ParagraphSpace = 10;
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
