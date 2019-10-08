@@ -53,17 +53,18 @@ namespace SvgTextViewer.TextCanvas
         }
         public Pen WireFramePen { get; set; }
         public CultureInfo RtlCulture { get; set; }
-        public CultureInfo LtrCulture { get; set; }
-        protected List<WordInfo> DrawnWords { get; set; }
+        public CultureInfo LtrCulture { get; set; } 
+        public List<List<WordInfo>> PageContent { get; set; }
+        public List<WordInfo> DrawWords { get; set; }
 
 
         protected BaseTextViewer()
         {
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
-            DrawnWords = new List<WordInfo>();
             WireFramePen = new Pen(Brushes.Red, 0.7) {DashStyle = DashStyles.Dash};
             RtlCulture = CultureInfo.GetCultureInfo("fa-ir");
             LtrCulture = CultureInfo.GetCultureInfo("en-us");
+            DrawWords = new List<WordInfo>();
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -72,6 +73,6 @@ namespace SvgTextViewer.TextCanvas
             Render();
         }
 
-        public void Render() { InvalidateVisual(); }
+        public virtual void Render() { InvalidateVisual(); }
     }
 }

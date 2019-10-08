@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace SvgTextViewer
 {
     public static class WordHelper
     {
+        private static readonly Regex PersianCharPattern = new Regex("[»«،۱۲۳۴۵۶۷۸۹۰\u061b-\u06f5]+");
+
         /// <summary>
         /// Searches a section of the list for a given element using a binary search
         /// algorithm.
@@ -43,9 +48,49 @@ namespace SvgTextViewer
             return ~lo;
         }
 
+        /// <summary>
+        /// Searches a section of the list for a given element using a binary search
+        /// algorithm.
+        /// </summary>
         public static int BinarySearch(this IList<WordInfo> words, Point value)
         {
             return words.BinarySearch(0, words.Count, value);
+        }
+
+
+        public static List<List<WordInfo>> GetWords(this string path)
+        {
+            var content = File.ReadAllLines(path, Encoding.UTF8);
+            var paras = new List<List<WordInfo>>();
+
+            foreach (var rawPara in content)
+            {
+                var offset = 0;
+                var words = new List<WordInfo>();
+
+                foreach (var word in rawPara.Split(' '))
+                {
+                    var wordInfo = new WordInfo(word, offset, word.IsRtl());
+                    //
+                    // define some test styles
+                    if (word.Length > 3)
+                        wordInfo.Styles.Add(StyleType.FontWeight, new InlineStyle(StyleType.FontWeight, "bold"));
+                    if (wordInfo.IsRtl == false)
+                        wordInfo.Styles.Add(StyleType.Color, new InlineStyle(StyleType.Color, "Blue"));
+                    
+                    words.Add(wordInfo);
+                    offset += word.Length + 1;
+                }
+
+                paras.Add(words);
+            }
+
+            return paras;
+        }
+
+        public static bool IsRtl(this string word)
+        {
+            return PersianCharPattern.IsMatch(word);
         }
     }
 }

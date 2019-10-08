@@ -71,12 +71,12 @@ namespace SvgTextViewer.TextCanvas
             {
                 var result = -1;
 
-                if (DrawnWords.LastOrDefault()?.CompareTo(selectedPoint) < 0)
-                    result = DrawnWords.Count - 1;
-                else if (DrawnWords.FirstOrDefault()?.CompareTo(selectedPoint) > 0)
+                if (DrawWords.LastOrDefault()?.CompareTo(selectedPoint) < 0)
+                    result = DrawWords.Count - 1;
+                else if (DrawWords.FirstOrDefault()?.CompareTo(selectedPoint) > 0)
                     result = 0;
                 else
-                    result = DrawnWords.BinarySearch(selectedPoint); // DrawnWords.FindIndex(w => w.CompareTo(selectedPoint) == 0); 
+                    result = DrawWords.BinarySearch(selectedPoint); // DrawnWords.FindIndex(w => w.CompareTo(selectedPoint) == 0); 
 #if DEBUG
                 if (result < 0)
                     dc.DrawEllipse(Brushes.Red, null, selectedPoint, 5, 5);
@@ -112,12 +112,12 @@ namespace SvgTextViewer.TextCanvas
 
             for (var w = from; w <= to; w++)
             {
-                var currentWord = DrawnWords[w].Area;
-                var isFirstOfLineWord = w == from || !DrawnWords[w - 1].DrawPoint.Y.Equals(currentWord.Y);
+                var currentWord = DrawWords[w].Area;
+                var isFirstOfLineWord = w == from || !DrawWords[w - 1].DrawPoint.Y.Equals(currentWord.Y);
 
                 if (isFirstOfLineWord == false)
                 {
-                    var previousWord = DrawnWords[w - 1];
+                    var previousWord = DrawWords[w - 1];
                     var startX = previousWord.IsRtl ? previousWord.DrawPoint.X : previousWord.DrawPoint.X + previousWord.Width;
                     var width = currentWord.X - startX + currentWord.Width;
 

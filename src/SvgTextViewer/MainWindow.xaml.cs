@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -21,6 +23,8 @@ namespace SvgTextViewer
             CmbFontSize.SelectedIndex = 10;
             CmbLineHeight.ItemsSource = new List<double>() { 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72, 96 };
             CmbLineHeight.SelectedIndex = 10;
+            Reader.PageContent = Path.Combine(Environment.CurrentDirectory, "ContentSample.txt").GetWords();
+
             DpiChanged += delegate { Reader.Render(); };
         }
     }

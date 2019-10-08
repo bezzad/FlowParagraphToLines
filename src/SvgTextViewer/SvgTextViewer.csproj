@@ -6,4 +6,18 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="ContentSample.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ContentSample.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MethodTimer.Fody" Version="3.1.0" />
+  </ItemGroup>
+
 </Project>

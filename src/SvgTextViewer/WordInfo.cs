@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using System.Windows.Media;
 
 namespace SvgTextViewer
 {
     public class WordInfo : Word, IComparable<Point>
     {
-        public WordInfo(FormattedText format, Point drawPoint, Rect area, int offset)
-            : base(format, drawPoint, area, offset) { }
+        public WordInfo(string text, int offset, bool isRtl)
+            : base(text, offset)
+        {
+            Styles.Add(StyleType.Direction, new InlineStyle(StyleType.Direction, isRtl ? "rtl" : "ltr"));
+        }
 
         public int CompareTo([AllowNull] Point other)
         {
