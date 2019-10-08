@@ -13,15 +13,13 @@
         </Grid.RowDefinitions>
         <local:TextCanvas Grid.Row="0" x:Name="Reader" Background="AntiqueWhite" Padding="20"></local:TextCanvas>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Background="Azure" >
-            <RadioButton Margin="10" IsChecked="True" Checked="TextAlignChanged">Left Align</RadioButton>
-            <RadioButton Margin="10" Checked="TextAlignChanged">Center Align</RadioButton>
-            <RadioButton Margin="10" Checked="TextAlignChanged">Right Align</RadioButton>
-            <RadioButton Margin="10" Checked="TextAlignChanged">Justify</RadioButton>
+            <CheckBox Margin="10" IsChecked="{Binding ElementName=Reader, Path=IsJustify, UpdateSourceTrigger=PropertyChanged}">Justify</CheckBox>
             <GridSplitter Width="2" Background="Black"></GridSplitter>
             <Label Margin="10,5,0,5">FontSize:</Label>
-            <TextBox Name="TxtFontSize" Margin="0,5,10,5" Padding="5" Text="{Binding Reader.FontSize}"></TextBox>
+            <TextBox Name="TxtFontSize" Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=FontSize, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <GridSplitter Width="2" Background="Black"></GridSplitter>
             <Label Margin="10,5,0,5">LineHeight</Label>
-            <TextBox Name="TxtLineHeight"  Margin="0,5,10,5" Padding="5" Text="{Binding Reader.LineHeight}"></TextBox>
+            <TextBox Name="TxtLineHeight"  Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=LineHeight, UpdateSourceTrigger=PropertyChanged}"></TextBox>
         </StackPanel>
     </Grid>
 </Window>

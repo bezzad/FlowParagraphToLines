@@ -1,11 +1,7 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 
 namespace TestMousePosToTextPointer
 {
-
-
     /// <summary>
     /// Interaction logic for FormattedTextWindow.xaml
     /// </summary>
@@ -15,12 +11,6 @@ namespace TestMousePosToTextPointer
         {
             InitializeComponent();
             DpiChanged += delegate { Reader.Render(); };
-        }
-
-        private void TextAlignChanged(object sender, RoutedEventArgs e)
-        {
-            var alignName = ((RadioButton) sender).Content as string;
-            Reader.TextAlignment = (TextAlignment) Enum.Parse(typeof(TextAlignment), alignName, true);
         }
     }
 }
