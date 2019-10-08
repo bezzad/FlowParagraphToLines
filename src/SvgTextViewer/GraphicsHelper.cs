@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace TestMousePosToTextPointer
+namespace SvgTextViewer
 {
     public static class GraphicsHelper
     {

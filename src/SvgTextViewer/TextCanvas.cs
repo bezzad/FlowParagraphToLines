@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace TestMousePosToTextPointer
+namespace SvgTextViewer
 {
     public class TextCanvas : Canvas
     {
@@ -70,7 +70,7 @@ namespace TestMousePosToTextPointer
             if (IsMouseDown)
             {
                 EndSelectionPoint = e.GetPosition(this);
-                InvalidateVisual();
+                Render();
             }
         }
         private void TextCanvasMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -81,7 +81,7 @@ namespace TestMousePosToTextPointer
             StartSelectionPoint = e.GetPosition((UIElement)sender);
             EndSelectionPoint = StartSelectionPoint;
             Debug.WriteLine("Mouse Left Button Down");
-            InvalidateVisual();
+            Render();
         }
         private void TextCanvasMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -91,7 +91,7 @@ namespace TestMousePosToTextPointer
                 IsMouseDown = false;
                 EndSelectionPoint = e.GetPosition((UIElement)sender);
                 Debug.WriteLine("Mouse Left Button Up, " + HighlightRange);
-                InvalidateVisual();
+                Render();
             }
         }
 
@@ -158,7 +158,7 @@ namespace TestMousePosToTextPointer
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            InvalidateVisual();
+            Render();
         }
         protected override void OnRender(DrawingContext dc)
         {
@@ -180,14 +180,14 @@ namespace TestMousePosToTextPointer
             }
         }
 
+        
+        public void Render() { InvalidateVisual(); }
+
         public void ClearSelection()
         {
             HighlightRange = null;
             EndSelectionPoint = StartSelectionPoint = EmptyPoint;
         }
-        public void Render() { InvalidateVisual(); }
-
-
         protected void HighlightSelectedText(DrawingContext dc)
         {
             int GetCorrectWordIndex(Point selectedPoint)

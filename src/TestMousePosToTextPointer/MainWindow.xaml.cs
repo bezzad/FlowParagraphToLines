@@ -57,8 +57,6 @@ namespace TestMousePosToTextPointer
         }
 
         
-
-
         private void Test_MouseMove(object sender, MouseEventArgs e)
         {
             try
@@ -83,10 +81,6 @@ namespace TestMousePosToTextPointer
             }
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
-        {
-            new FormattedTextWindow().ShowDialog();
-        }
     }
 
 }

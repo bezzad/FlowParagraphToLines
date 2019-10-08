@@ -1,13 +1,13 @@
 ﻿using System.Windows;
 
-namespace TestMousePosToTextPointer
+namespace SvgTextViewer
 {
     /// <summary>
-    /// Interaction logic for FormattedTextWindow.xaml
+    /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class FormattedTextWindow : Window
+    public partial class MainWindow : Window
     {
-        public FormattedTextWindow()
+        public MainWindow()
         {
             InitializeComponent();
             DpiChanged += delegate { Reader.Render(); };

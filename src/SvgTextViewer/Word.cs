@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Media;
 
-namespace TestMousePosToTextPointer
+namespace SvgTextViewer
 {
     public abstract class Word
     {

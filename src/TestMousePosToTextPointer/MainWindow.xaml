@@ -22,7 +22,5 @@
 
         <ListBox Name="ListBoxLines" Margin="10,0,10,53" Background="Aquamarine" Height="166" VerticalAlignment="Bottom"/>
         <Label Name="LabelMsg" Content="{Binding }" Margin="10,0,10,5" Height="38" VerticalAlignment="Bottom"/>
-
-        <Button Click="ButtonBase_OnClick" Height="43" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="122">Test FormattedText</Button>
     </Grid>
 </Window>
