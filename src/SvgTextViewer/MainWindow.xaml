@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SvgTextViewer"
         xmlns:textCanvas="clr-namespace:SvgTextViewer.TextCanvas"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
@@ -12,7 +11,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
-        <textCanvas:TextViewer Grid.Row="0" x:Name="Reader" Background="AntiqueWhite" Padding="20"></textCanvas:TextViewer>
+        <textCanvas:SelectableTextViewer Grid.Row="0" x:Name="Reader" Background="AntiqueWhite" Padding="20" IsSelectable="False"></textCanvas:SelectableTextViewer>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Background="Azure" >
             <CheckBox Margin="10" IsChecked="{Binding ElementName=Reader, Path=ShowWireFrame, UpdateSourceTrigger=PropertyChanged}">Wire Frame</CheckBox>
             <GridSplitter Width="1" Background="Gray"></GridSplitter>

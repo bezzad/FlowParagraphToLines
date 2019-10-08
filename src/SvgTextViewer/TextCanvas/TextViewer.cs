@@ -23,8 +23,8 @@ namespace SvgTextViewer.TextCanvas
                     word.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
                     new Typeface(FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
                     FontSize,
-                    Brushes.Black, 
-                    GraphicsHelper.PixelsPerDip(this));
+                    Brushes.Black,
+                    PixelsPerDip);
 
                 var wordW = wordFormatter.Width;
                 var newLineNeeded = word.IsRtl

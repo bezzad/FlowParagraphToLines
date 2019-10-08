@@ -25,7 +25,11 @@ namespace SvgTextViewer
             CmbLineHeight.SelectedIndex = 10;
             Reader.PageContent = Path.Combine(Environment.CurrentDirectory, "ContentSample.txt").GetWords();
 
-            DpiChanged += delegate { Reader.Render(); };
+            DpiChanged += delegate
+            {
+                Reader.PixelsPerDip = GraphicsHelper.PixelsPerDip(this);
+                Reader.Render();
+            };
         }
     }
 }

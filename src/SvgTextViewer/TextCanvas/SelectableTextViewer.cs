@@ -8,6 +8,14 @@ namespace SvgTextViewer.TextCanvas
 {
     public class SelectableTextViewer : TextViewer
     {
+        public static readonly DependencyProperty IsSelectableProperty = DependencyProperty.Register(
+            "IsSelectable", typeof(bool), typeof(SelectableTextViewer), new PropertyMetadata(default(bool)));
+
+        public bool IsSelectable
+        {
+            get => (bool) GetValue(IsSelectableProperty);
+            set => SetValue(IsSelectableProperty, value);
+        }
         protected Point EmptyPoint { get; set; } = new Point(0, 0);
         protected Point StartSelectionPoint { get; set; }
         protected Point EndSelectionPoint { get; set; }
@@ -18,6 +26,7 @@ namespace SvgTextViewer.TextCanvas
 
         public SelectableTextViewer()
         {
+            IsSelectable = true;
             SelectedBrush = new SolidColorBrush(Colors.DarkCyan) { Opacity = 0.5 };
             Cursor = Cursors.IBeam;
 
@@ -59,7 +68,7 @@ namespace SvgTextViewer.TextCanvas
         {
             base.OnRender(dc);
 
-            if (IsMouseDown || HighlightRange != null)
+            if (IsSelectable && (IsMouseDown || HighlightRange != null))
             {
                 HighlightSelectedText(dc);
             }

@@ -56,6 +56,7 @@ namespace SvgTextViewer.TextCanvas
         public CultureInfo LtrCulture { get; set; } 
         public List<List<WordInfo>> PageContent { get; set; }
         public List<WordInfo> DrawWords { get; set; }
+        public double PixelsPerDip { get; set; }
 
 
         protected BaseTextViewer()
@@ -65,6 +66,7 @@ namespace SvgTextViewer.TextCanvas
             RtlCulture = CultureInfo.GetCultureInfo("fa-ir");
             LtrCulture = CultureInfo.GetCultureInfo("en-us");
             DrawWords = new List<WordInfo>();
+            PixelsPerDip = GraphicsHelper.PixelsPerDip(this);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
