@@ -11,7 +11,7 @@ namespace SvgTextViewer.TextCanvas
         {
 
         }
-        
+
         protected void CreateFormattedWords()
         {
             DrawnWords.Clear();
@@ -39,9 +39,9 @@ namespace SvgTextViewer.TextCanvas
                 // Create the initial formatted text string.
                 var wordFormatter = new FormattedText(
                     word,
-                    isRtl ? CultureInfo.GetCultureInfo("fa-IR") : CultureInfo.GetCultureInfo("en-us"),
+                    isRtl ? RtlCulture : LtrCulture,
                     isRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
-                    new Typeface("Arial"),
+                    new Typeface(FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
                     FontSize,
                     Brushes.Black, 1);
 
@@ -83,7 +83,8 @@ namespace SvgTextViewer.TextCanvas
             foreach (var word in DrawnWords)
             {
                 dc.DrawText(word.Format, word.DrawPoint);
-                dc.DrawRectangle(null, new Pen(Brushes.Red, 1), word.Area);
+                if (ShowWireFrame)
+                    dc.DrawRectangle(null, WireFramePen, word.Area);
             }
         }
     }

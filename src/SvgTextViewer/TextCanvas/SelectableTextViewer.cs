@@ -19,6 +19,7 @@ namespace SvgTextViewer.TextCanvas
         public SelectableTextViewer()
         {
             SelectedBrush = new SolidColorBrush(Colors.DarkCyan) { Opacity = 0.5 };
+            Cursor = Cursors.IBeam;
 
             // Add the event handler for Mouse events.
             MouseLeftButtonUp += TextCanvasMouseLeftButtonUp;
