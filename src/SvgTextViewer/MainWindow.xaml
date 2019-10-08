@@ -16,11 +16,14 @@
         <StackPanel Orientation="Horizontal" Grid.Row="1" Background="Azure" >
             <CheckBox Margin="10" IsChecked="{Binding ElementName=Reader, Path=IsJustify, UpdateSourceTrigger=PropertyChanged}">Justify</CheckBox>
             <GridSplitter Width="2" Background="Black"></GridSplitter>
-            <Label Margin="10,5,0,5">FontSize:</Label>
-            <TextBox Name="TxtFontSize" Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=FontSize, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <Label Margin="10,5,0,5">Font Family:</Label>
+            <ComboBox Name="CmbFontFamily" Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=FontFamily, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
             <GridSplitter Width="2" Background="Black"></GridSplitter>
-            <Label Margin="10,5,0,5">LineHeight</Label>
-            <TextBox Name="TxtLineHeight"  Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=LineHeight, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <Label Margin="10,5,0,5">Font Size:</Label>
+            <ComboBox Name="CmbFontSize" Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=FontSize, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
+            <GridSplitter Width="2" Background="Black"></GridSplitter>
+            <Label Margin="10,5,0,5">Line Height</Label>
+            <ComboBox Name="CmbLineHeight" Margin="0,5,10,5" Padding="5" Text="{Binding ElementName=Reader, Path=LineHeight, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
         </StackPanel>
     </Grid>
 </Window>

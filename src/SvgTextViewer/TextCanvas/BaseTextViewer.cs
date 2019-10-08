@@ -16,8 +16,14 @@ namespace SvgTextViewer.TextCanvas
             "IsJustify", typeof(bool), typeof(TextViewer), new PropertyMetadata(default(bool)));
         public static readonly DependencyProperty PaddingProperty = DependencyProperty.Register(
             "Padding", typeof(Thickness), typeof(BaseTextViewer), new PropertyMetadata(default(Thickness)));
+        public static readonly DependencyProperty FontFamilyProperty = DependencyProperty.Register(
+            "FontFamily", typeof(FontFamily), typeof(BaseTextViewer), new PropertyMetadata(default(FontFamily)));
 
-
+        public FontFamily FontFamily
+        {
+            get => (FontFamily) GetValue(FontFamilyProperty);
+            set => SetValue(FontFamilyProperty, value);
+        }
         public double FontSize
         {
             get => (double)GetValue(FontSizeProperty);
@@ -48,6 +54,7 @@ namespace SvgTextViewer.TextCanvas
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
             Cursor = Cursors.IBeam;
             DrawnWords = new List<WordInfo>();
+            FontFamily = new FontFamily("Arial");
             FontSize = 24;
             LineHeight = 25;
         }
