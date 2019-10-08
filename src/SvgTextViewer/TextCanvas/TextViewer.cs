@@ -12,35 +12,39 @@ namespace SvgTextViewer.TextCanvas
         protected void ProcessContent(List<List<WordInfo>> content, Point startPoint)
         {
             DrawWords.Clear();
-            var spaceWidth = 5;
-
+            var line = new List<WordInfo>();
             foreach (var para in content)
             {
                 foreach (var word in para)
                 {
+                    word.SpaceWidth = FontSize * 0.3;
+
                     // Create the initial formatted text string.
                     var wordFormatter = new FormattedText(
                         word.Text,
                         word.IsRtl ? RtlCulture : LtrCulture,
                         word.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
-                        new Typeface(FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+                        new Typeface(FontFamily, FontStyles.Normal, word.Styles.ContainsKey(StyleType.FontWeight) ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal),
                         FontSize,
-                        Brushes.Black,
+                        word.Styles.ContainsKey(StyleType.Color) ? (SolidColorBrush)new BrushConverter().ConvertFromString(word.Styles[StyleType.Color].Value) : Brushes.Black,
                         PixelsPerDip);
 
                     var wordW = wordFormatter.Width;
                     var newLineNeeded = IsContentRtl
                         ? (startPoint.X - wordW < Padding.Left)
                         : (startPoint.X + wordW > ActualWidth - Padding.Right);
-
+                    
                     if (newLineNeeded)
                     {
+                        Lines.Add(line);
+                        line = new List<WordInfo>();
                         startPoint.Y += LineHeight; // new line
                         startPoint.X = IsContentRtl
                             ? ActualWidth - Padding.Right
                             : Padding.Left;
                     }
 
+                    line.Add(word);
                     var wordArea = new Rect(word.IsRtl ? new Point(startPoint.X - wordW, startPoint.Y) : startPoint, new Size(wordW, LineHeight));
                     word.Area = wordArea;
                     word.Format = wordFormatter;
@@ -48,10 +52,12 @@ namespace SvgTextViewer.TextCanvas
                     DrawWords.Add(word);
 
                     startPoint.X += word.IsRtl ? -wordW : wordW;
-                    startPoint.X += word.IsRtl ? -spaceWidth : spaceWidth;
+                    startPoint.X += word.IsRtl ? -word.SpaceWidth : word.SpaceWidth;
                 }
-
+                
                 // new line + ParagraphSpace
+                Lines.Add(line);
+                line = new List<WordInfo>();
                 startPoint.Y += LineHeight + ParagraphSpace; 
                 startPoint.X = IsContentRtl
                     ? ActualWidth - Padding.Right

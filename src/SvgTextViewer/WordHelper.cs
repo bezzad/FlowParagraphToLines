@@ -13,6 +13,8 @@ namespace SvgTextViewer
         private static readonly Regex RtlCharsPattern = new Regex("[،\u061b-\u06f5]+");
         private static readonly string DependentAlignChars = ".»«[]{}()'\"";
 
+        public static List<List<WordInfo>> Content = new List<List<WordInfo>>();
+
         /// <summary>
         /// Searches a section of the list for a given element using a binary search
         /// algorithm.
@@ -62,7 +64,7 @@ namespace SvgTextViewer
         public static List<List<WordInfo>> GetWords(this string path, bool isContentRtl)
         {
             var content = File.ReadAllLines(path, Encoding.UTF8);
-            var paras = new List<List<WordInfo>>();
+            Content = new List<List<WordInfo>>();
 
             foreach (var rawPara in content)
             {
@@ -74,7 +76,7 @@ namespace SvgTextViewer
                     var wordInfo = new WordInfo(word, offset, word.IsRtl(isContentRtl));
                     //
                     // define some test styles
-                    if (word.Length > 3)
+                    if (word.Length > 6)
                         wordInfo.Styles.Add(StyleType.FontWeight, new InlineStyle(StyleType.FontWeight, "bold"));
                     if (wordInfo.IsRtl == false)
                         wordInfo.Styles.Add(StyleType.Color, new InlineStyle(StyleType.Color, "Blue"));
@@ -83,10 +85,10 @@ namespace SvgTextViewer
                     offset += word.Length + 1;
                 }
 
-                paras.Add(words);
+                Content.Add(words);
             }
 
-            return paras;
+            return Content;
         }
 
         public static bool IsRtl(this string word, bool isContentRtl)

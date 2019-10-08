@@ -72,6 +72,7 @@ namespace SvgTextViewer.TextCanvas
         public CultureInfo LtrCulture { get; set; } 
         public List<List<WordInfo>> PageContent { get; set; }
         public List<WordInfo> DrawWords { get; set; }
+        public List<List<WordInfo>> Lines { get; set; }
         public double PixelsPerDip { get; set; }
         
 
@@ -83,6 +84,7 @@ namespace SvgTextViewer.TextCanvas
             RtlCulture = CultureInfo.GetCultureInfo("fa-ir");
             LtrCulture = CultureInfo.GetCultureInfo("en-us");
             DrawWords = new List<WordInfo>();
+            Lines = new List<List<WordInfo>>();
             PixelsPerDip = GraphicsHelper.PixelsPerDip(this);
             ParagraphSpace = 10;
         }

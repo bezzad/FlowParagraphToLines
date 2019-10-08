@@ -11,7 +11,6 @@ namespace SvgTextViewer
             Text = text;
             OffsetRange = new Range(offset, offset + text.Length - 1);
             ImpressivePaddingPercent = 0.2; // 20% of word length
-            NextSpaceWidth = 5;
             Styles = new Dictionary<StyleType, InlineStyle>();
         }
 
@@ -20,7 +19,7 @@ namespace SvgTextViewer
         public Rect Area { get; set; }
         public Range OffsetRange { get; set; }
         public Dictionary<StyleType, InlineStyle> Styles { get; set; }
-        public int NextSpaceWidth { get; set; }
+        public double SpaceWidth { get; set; }
         public double ImpressivePaddingPercent { get; set; }
         public string Text { get; set; }
 
