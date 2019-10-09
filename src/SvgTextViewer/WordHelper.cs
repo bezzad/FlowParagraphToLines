@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ namespace SvgTextViewer
         private static readonly Regex RtlCharsPattern = new Regex("[،\u061b-\u06f5]+");
         private static readonly string DependentAlignChars = ".»«[]{}()'\"";
 
+       
         public static List<List<WordInfo>> Content = new List<List<WordInfo>>();
 
         /// <summary>
@@ -76,7 +78,7 @@ namespace SvgTextViewer
                     var wordInfo = new WordInfo(word, offset, word.IsRtl(isContentRtl));
                     //
                     // define some test styles
-                    if (word.Length > 6)
+                    if (word.Length > 10)
                         wordInfo.Styles.Add(StyleType.FontWeight, new InlineStyle(StyleType.FontWeight, "bold"));
                     if (wordInfo.IsRtl == false)
                         wordInfo.Styles.Add(StyleType.Color, new InlineStyle(StyleType.Color, "Blue"));

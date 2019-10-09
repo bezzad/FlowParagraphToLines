@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 
@@ -12,7 +13,12 @@ namespace SvgTextViewer
             OffsetRange = new Range(offset, offset + text.Length - 1);
             ImpressivePaddingPercent = 0.2; // 20% of word length
             Styles = new Dictionary<StyleType, InlineStyle>();
+            RtlCulture ??= CultureInfo.GetCultureInfo("fa-ir");
+            LtrCulture ??= CultureInfo.GetCultureInfo("en-us");
         }
+
+        public static CultureInfo RtlCulture { get; set; }
+        public static CultureInfo LtrCulture { get; set; }
 
         public FormattedText Format { get; set; }
         public Point DrawPoint { get; set; }

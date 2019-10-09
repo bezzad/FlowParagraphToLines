@@ -17,17 +17,8 @@ namespace SvgTextViewer.TextCanvas
             {
                 foreach (var word in para)
                 {
-                    word.SpaceWidth = FontSize * 0.3;
-
                     // Create the initial formatted text string.
-                    var wordFormatter = new FormattedText(
-                        word.Text,
-                        word.IsRtl ? RtlCulture : LtrCulture,
-                        word.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
-                        new Typeface(FontFamily, FontStyles.Normal, word.Styles.ContainsKey(StyleType.FontWeight) ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal),
-                        FontSize,
-                        word.Styles.ContainsKey(StyleType.Color) ? (SolidColorBrush)new BrushConverter().ConvertFromString(word.Styles[StyleType.Color].Value) : Brushes.Black,
-                        PixelsPerDip);
+                    var wordFormatter = word.GetFormattedText(FontFamily, FontSize, PixelsPerDip);
 
                     var wordW = wordFormatter.Width;
                     var newLineNeeded = IsContentRtl
@@ -65,6 +56,8 @@ namespace SvgTextViewer.TextCanvas
             }
         }
 
+        
+
         [Time]
         protected void BuildPage(List<List<WordInfo>> content)
         {
@@ -91,17 +84,8 @@ namespace SvgTextViewer.TextCanvas
             {
                 foreach (var word in para)
                 {
-                    word.SpaceWidth = FontSize * 0.3;
-
                     // Create the initial formatted text string.
-                    var wordFormatter = new FormattedText(
-                        word.Text,
-                        word.IsRtl ? RtlCulture : LtrCulture,
-                        word.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
-                        new Typeface(FontFamily, FontStyles.Normal, word.Styles.ContainsKey(StyleType.FontWeight) ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal),
-                        FontSize,
-                        word.Styles.ContainsKey(StyleType.Color) ? (SolidColorBrush)new BrushConverter().ConvertFromString(word.Styles[StyleType.Color].Value) : Brushes.Black,
-                        PixelsPerDip);
+                    var wordFormatter = word.GetFormattedText(FontFamily, FontSize, PixelsPerDip);
 
                     var wordW = wordFormatter.Width;
                     if (lineRemainWidth - wordW <= 0)
@@ -112,7 +96,6 @@ namespace SvgTextViewer.TextCanvas
                     lineBuffer.Add(word);
                     var wordArea = new Rect(word.IsRtl ? new Point(startPoint.X - wordW, startPoint.Y) : startPoint, new Size(wordW, LineHeight));
                     word.Area = wordArea;
-                    word.Format = wordFormatter;
                     word.DrawPoint = startPoint;
                     DrawWords.Add(word);
 

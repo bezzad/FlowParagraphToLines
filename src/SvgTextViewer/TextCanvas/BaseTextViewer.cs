@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -28,17 +27,17 @@ namespace SvgTextViewer.TextCanvas
 
         public bool IsContentRtl
         {
-            get => (bool) GetValue(IsContentRtlProperty);
+            get => (bool)GetValue(IsContentRtlProperty);
             set => SetValue(IsContentRtlProperty, value);
         }
         public double ParagraphSpace
         {
-            get => (double) GetValue(ParagraphSpaceProperty);
+            get => (double)GetValue(ParagraphSpaceProperty);
             set => SetValue(ParagraphSpaceProperty, value);
         }
         public bool ShowWireFrame
         {
-            get => (bool) GetValue(ShowWireFrameProperty);
+            get => (bool)GetValue(ShowWireFrameProperty);
             set => SetValue(ShowWireFrameProperty, value);
         }
         public FontFamily FontFamily
@@ -56,7 +55,7 @@ namespace SvgTextViewer.TextCanvas
             get => (int)GetValue(LineHeightProperty);
             set => SetValue(LineHeightProperty, value);
         }
-        
+
         public bool IsJustify
         {
             get => (bool)GetValue(IsJustifyProperty);
@@ -68,21 +67,18 @@ namespace SvgTextViewer.TextCanvas
             set => SetValue(PaddingProperty, value);
         }
         public Pen WireFramePen { get; set; }
-        public CultureInfo RtlCulture { get; set; }
-        public CultureInfo LtrCulture { get; set; } 
+
         public List<List<WordInfo>> PageContent { get; set; }
         public List<WordInfo> DrawWords { get; set; }
         public List<List<WordInfo>> Lines { get; set; }
         public double PixelsPerDip { get; set; }
-        
+
 
 
         protected BaseTextViewer()
         {
             TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
-            WireFramePen = new Pen(Brushes.Red, 0.7) {DashStyle = DashStyles.Dash};
-            RtlCulture = CultureInfo.GetCultureInfo("fa-ir");
-            LtrCulture = CultureInfo.GetCultureInfo("en-us");
+            WireFramePen = new Pen(Brushes.Red, 0.7) { DashStyle = DashStyles.Dash };
             DrawWords = new List<WordInfo>();
             Lines = new List<List<WordInfo>>();
             PixelsPerDip = GraphicsHelper.PixelsPerDip(this);
