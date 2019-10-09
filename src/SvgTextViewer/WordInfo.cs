@@ -30,19 +30,31 @@ namespace SvgTextViewer
             return 0;
         }
 
-        public FormattedText GetFormattedText(FontFamily fontFamily, double fontSize, double pixelsPerDip)
+        public FormattedText GetFormattedText(FontFamily fontFamily, 
+            double fontSize, 
+            double pixelsPerDip,
+            double lineHeight)
         {
             // Create the initial formatted text string.
             Format = new FormattedText(
                 Text,
                 IsRtl ? RtlCulture : LtrCulture,
                 IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
-                new Typeface(fontFamily, FontStyles.Normal, Styles.ContainsKey(StyleType.FontWeight) ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal),
+                new Typeface(fontFamily, FontStyles.Normal,
+                    Styles.ContainsKey(StyleType.FontWeight) ? FontWeights.Bold : FontWeights.Normal,
+                    FontStretches.Normal),
                 fontSize,
-                Styles.ContainsKey(StyleType.Color) ? (SolidColorBrush)new BrushConverter().ConvertFromString(Styles[StyleType.Color].Value) : Brushes.Black,
-                pixelsPerDip);
+                Styles.ContainsKey(StyleType.Color)
+                    ? (SolidColorBrush) new BrushConverter().ConvertFromString(Styles[StyleType.Color].Value)
+                    : Brushes.Black,
+                pixelsPerDip)
+            {
+                LineHeight = lineHeight
+            };
 
             SpaceWidth = fontSize * 0.3;
+            Width = Format.Width;
+            Height = lineHeight;
             return Format;
         }
     }

@@ -88,7 +88,11 @@ namespace SvgTextViewer.TextCanvas
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            Render();
+
+            // ignore properties like IsMouseOver and IsMouseDirectlyOver and ...
+            if (e.Property.Name.StartsWith("IsMouse") == false) 
+                Render();
+            
         }
 
         public virtual void Render() { InvalidateVisual(); }

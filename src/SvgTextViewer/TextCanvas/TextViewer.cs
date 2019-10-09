@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using MethodTimer;
@@ -8,56 +9,6 @@ namespace SvgTextViewer.TextCanvas
 {
     public class TextViewer : BaseTextViewer
     {
-        [Time]
-        protected void ProcessContent(List<List<WordInfo>> content, Point startPoint)
-        {
-            DrawWords.Clear();
-            var line = new List<WordInfo>();
-            foreach (var para in content)
-            {
-                foreach (var word in para)
-                {
-                    // Create the initial formatted text string.
-                    var wordFormatter = word.GetFormattedText(FontFamily, FontSize, PixelsPerDip);
-
-                    var wordW = wordFormatter.Width;
-                    var newLineNeeded = IsContentRtl
-                        ? (startPoint.X - wordW < Padding.Left)
-                        : (startPoint.X + wordW > ActualWidth - Padding.Right);
-
-                    if (newLineNeeded)
-                    {
-                        Lines.Add(line);
-                        line = new List<WordInfo>();
-                        startPoint.Y += LineHeight; // new line
-                        startPoint.X = IsContentRtl
-                            ? ActualWidth - Padding.Right
-                            : Padding.Left;
-                    }
-
-                    line.Add(word);
-                    var wordArea = new Rect(word.IsRtl ? new Point(startPoint.X - wordW, startPoint.Y) : startPoint, new Size(wordW, LineHeight));
-                    word.Area = wordArea;
-                    word.Format = wordFormatter;
-                    word.DrawPoint = startPoint;
-                    DrawWords.Add(word);
-
-                    startPoint.X += word.IsRtl ? -wordW : wordW;
-                    startPoint.X += word.IsRtl ? -word.SpaceWidth : word.SpaceWidth;
-                }
-
-                // new line + ParagraphSpace
-                Lines.Add(line);
-                line = new List<WordInfo>();
-                startPoint.Y += LineHeight + ParagraphSpace;
-                startPoint.X = IsContentRtl
-                    ? ActualWidth - Padding.Right
-                    : Padding.Left;
-            }
-        }
-
-        
-
         [Time]
         protected void BuildPage(List<List<WordInfo>> content)
         {
@@ -71,6 +22,9 @@ namespace SvgTextViewer.TextCanvas
 
             void AddLine()
             {
+                if (nonDirectionalWordsStack.Any())
+                    while (nonDirectionalWordsStack.TryPop(out var nWord))
+                        AddWord(nWord);
                 Lines.Add(lineBuffer);
                 lineBuffer = new List<WordInfo>(); // create new line buffer, without cleaning last line
                 lineRemainWidth = lineWidth;
@@ -78,6 +32,19 @@ namespace SvgTextViewer.TextCanvas
                 startPoint.X = IsContentRtl
                     ? ActualWidth - Padding.Right
                     : Padding.Left;
+                nonDirectionalWordsStack.Clear();
+            }
+
+            void AddWord(WordInfo word)
+            {
+                var areaLoc = word.IsRtl ? new Point(startPoint.X - word.Width, startPoint.Y) : startPoint;
+                var wordArea = new Rect(areaLoc, new Size(word.Width, LineHeight));
+                word.Area = wordArea;
+                word.DrawPoint = startPoint;
+                DrawWords.Add(word);
+
+                startPoint.X += word.IsRtl ? -word.Width : word.Width;
+                startPoint.X += word.IsRtl ? -word.SpaceWidth : word.SpaceWidth;
             }
 
             foreach (var para in content)
@@ -85,23 +52,29 @@ namespace SvgTextViewer.TextCanvas
                 foreach (var word in para)
                 {
                     // Create the initial formatted text string.
-                    var wordFormatter = word.GetFormattedText(FontFamily, FontSize, PixelsPerDip);
+                    var wordFormatter = word.GetFormattedText(FontFamily, FontSize, PixelsPerDip, LineHeight);
 
-                    var wordW = wordFormatter.Width;
-                    if (lineRemainWidth - wordW <= 0)
+                    if (lineRemainWidth - word.Width <= 0)
                     {
                         AddLine();
                     }
 
                     lineBuffer.Add(word);
-                    var wordArea = new Rect(word.IsRtl ? new Point(startPoint.X - wordW, startPoint.Y) : startPoint, new Size(wordW, LineHeight));
-                    word.Area = wordArea;
-                    word.DrawPoint = startPoint;
-                    DrawWords.Add(word);
+                    if (IsContentRtl != word.IsRtl)
+                        nonDirectionalWordsStack.Push(word);
+                    else if (nonDirectionalWordsStack.Any())
+                    {
+                        while (nonDirectionalWordsStack.TryPop(out var nWord))
+                        {
+                            AddWord(nWord);
+                        }
+                    }
+                    else
+                    {
+                        AddWord(word);
+                    }
 
-                    lineRemainWidth -= wordW + word.SpaceWidth;
-                    startPoint.X += word.IsRtl ? -wordW : wordW;
-                    startPoint.X += word.IsRtl ? -word.SpaceWidth : word.SpaceWidth;
+                    lineRemainWidth -= word.Width + word.SpaceWidth;
                 }
 
                 // new line + ParagraphSpace

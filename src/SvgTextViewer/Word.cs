@@ -28,10 +28,11 @@ namespace SvgTextViewer
         public double SpaceWidth { get; set; }
         public double ImpressivePaddingPercent { get; set; }
         public string Text { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+
 
         public bool IsRtl => Styles[StyleType.Direction].Value == "rtl";
         public int Offset => OffsetRange.Start;
-        public double Width => Area.Size.Width;
-        public double Height => Area.Size.Height;
     }
 }

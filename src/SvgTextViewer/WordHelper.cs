@@ -11,7 +11,7 @@ namespace SvgTextViewer
 {
     public static class WordHelper
     {
-        private static readonly Regex RtlCharsPattern = new Regex("[،\u061b-\u06f5]+");
+        private static readonly Regex RtlCharsPattern = new Regex("[۰۱۲۳۴۵۶۷۸۹/\\،\u061b-\u06f5]+");
         private static readonly string DependentAlignChars = ".»«[]{}()'\"";
 
        
