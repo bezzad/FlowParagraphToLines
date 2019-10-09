@@ -57,5 +57,11 @@ namespace SvgTextViewer
             Height = lineHeight;
             return Format;
         }
+
+
+        public override string ToString()
+        {
+            return $"<--{OffsetRange.Start}--\"{Text}\"--{OffsetRange.End}-->";
+        }
     }
 }

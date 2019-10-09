@@ -37,14 +37,36 @@ namespace SvgTextViewer.TextCanvas
 
             void AddWord(WordInfo word)
             {
-                var areaLoc = word.IsRtl ? new Point(startPoint.X - word.Width, startPoint.Y) : startPoint;
-                var wordArea = new Rect(areaLoc, new Size(word.Width, LineHeight));
-                word.Area = wordArea;
-                word.DrawPoint = startPoint;
                 DrawWords.Add(word);
 
-                startPoint.X += word.IsRtl ? -word.Width : word.Width;
-                startPoint.X += word.IsRtl ? -word.SpaceWidth : word.SpaceWidth;
+                if (IsContentRtl)
+                {
+                    //     _____________________________________________
+                    //    |                                             |
+                    //    |                               __________ +  |  + start position
+                    //    |                     <--- ... |__________|   | 
+                    //    |                                             |
+                    //    |                                             |
+                    //    |_____________________________________________| 
+                    //
+                    word.Area = new Rect(new Point(startPoint.X - word.Width, startPoint.Y), new Size(word.Width, LineHeight));
+                    word.DrawPoint = word.IsRtl ? startPoint : word.Area.Location;
+                    startPoint.X -= word.Width + word.SpaceWidth;
+                }
+                else // ---->
+                {
+                    //     _____________________________________________
+                    //    |                                             |
+                    //    |   +__________                               |  + start position
+                    //    |   |__________|  ... --->                    | 
+                    //    |                                             |
+                    //    |                                             |
+                    //    |_____________________________________________| 
+                    //
+                    word.Area = new Rect(startPoint, new Size(word.Width, LineHeight));
+                    word.DrawPoint = word.IsRtl ? startPoint : word.Area.Location;
+                    startPoint.X += word.Width + word.SpaceWidth;
+                }
             }
 
             foreach (var para in content)
@@ -52,7 +74,7 @@ namespace SvgTextViewer.TextCanvas
                 foreach (var word in para)
                 {
                     // Create the initial formatted text string.
-                    var wordFormatter = word.GetFormattedText(FontFamily, FontSize, PixelsPerDip, LineHeight);
+                    word.GetFormattedText(FontFamily, FontSize, PixelsPerDip, LineHeight);
 
                     if (lineRemainWidth - word.Width <= 0)
                     {
@@ -62,17 +84,16 @@ namespace SvgTextViewer.TextCanvas
                     lineBuffer.Add(word);
                     if (IsContentRtl != word.IsRtl)
                         nonDirectionalWordsStack.Push(word);
-                    else if (nonDirectionalWordsStack.Any())
-                    {
-                        while (nonDirectionalWordsStack.TryPop(out var nWord))
-                        {
-                            AddWord(nWord);
-                        }
-                    }
                     else
                     {
+                        if (nonDirectionalWordsStack.Any())
+                            while (nonDirectionalWordsStack.TryPop(out var nWord))
+                                AddWord(nWord);
+
                         AddWord(word);
                     }
+
+
 
                     lineRemainWidth -= word.Width + word.SpaceWidth;
                 }
@@ -93,7 +114,7 @@ namespace SvgTextViewer.TextCanvas
 
             BuildPage(PageContent);
 
-            foreach (var word in PageContent[0])
+            foreach (var word in DrawWords)
             {
                 dc.DrawText(word.Format, word.DrawPoint);
                 if (ShowWireFrame)
