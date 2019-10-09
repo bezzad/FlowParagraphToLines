@@ -22,7 +22,7 @@ namespace SvgTextViewer
             CmbFontSize.ItemsSource = new List<double>() { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 };
             CmbFontSize.SelectedIndex = 8;
             CmbLineHeight.ItemsSource = new List<double>() { 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72, 96 };
-            CmbLineHeight.SelectedIndex = 10;
+            CmbLineHeight.SelectedIndex = 8;
 
             BtnRtlSampleChecked(this, null);
 

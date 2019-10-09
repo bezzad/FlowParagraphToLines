@@ -93,8 +93,6 @@ namespace SvgTextViewer.TextCanvas
                         AddWord(word);
                     }
 
-
-
                     lineRemainWidth -= word.Width + word.SpaceWidth;
                 }
 

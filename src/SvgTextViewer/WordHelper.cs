@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,10 +10,11 @@ namespace SvgTextViewer
 {
     public static class WordHelper
     {
-        private static readonly Regex RtlCharsPattern = new Regex("[۰۱۲۳۴۵۶۷۸۹/\\،\u061b-\u06f5]+");
-        private static readonly string DependentAlignChars = ".»«[]{}()'\"";
+        private static readonly Regex RtlCharsPattern = new Regex("[\u061b-\u06f5]+");
+        private static readonly Regex LtrCharsPattern = new Regex("[a-zA-Z0-9۰۱۲۳۴۵۶۷۸۹]");
+        private static readonly string InertChars = "،.»«[]{}()'/\\:!@#$%^&~*-+\"`";
 
-       
+
         public static List<List<WordInfo>> Content = new List<List<WordInfo>>();
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace SvgTextViewer
         {
             return words.BinarySearch(0, words.Count, value);
         }
-        
+
         public static List<List<WordInfo>> GetWords(this string path, bool isContentRtl)
         {
             var content = File.ReadAllLines(path, Encoding.UTF8);
@@ -75,16 +75,26 @@ namespace SvgTextViewer
 
                 foreach (var word in rawPara.Split(' '))
                 {
-                    var wordInfo = new WordInfo(word, offset, word.IsRtl(isContentRtl));
-                    //
-                    // define some test styles
-                    if (word.Length > 10)
-                        wordInfo.Styles.Add(StyleType.FontWeight, new InlineStyle(StyleType.FontWeight, "bold"));
-                    if (wordInfo.IsRtl == false)
-                        wordInfo.Styles.Add(StyleType.Color, new InlineStyle(StyleType.Color, "Blue"));
-                    
-                    words.Add(wordInfo);
-                    offset += word.Length + 1;
+                    var splitWords = word.ConvertInertCharToWord();
+                    for (var i = 0; i < splitWords.Count; i++)
+                    {
+                        var w = splitWords[i];
+                        var wordInfo = new WordInfo(w, offset, w.IsRtl(isContentRtl));
+                        //
+                        // define some test styles
+                        if (w.Length > 10)
+                            wordInfo.Styles.Add(StyleType.FontWeight, new InlineStyle(StyleType.FontWeight, "bold"));
+                        if (wordInfo.IsRtl == false)
+                            wordInfo.Styles.Add(StyleType.Color, new InlineStyle(StyleType.Color, "Blue"));
+
+                        if (i < splitWords.Count - 1)
+                            wordInfo.IsInnerWord = true;
+
+                        words.Add(wordInfo);
+                        offset += w.Length;
+                    }
+
+                    offset++; // word space
                 }
 
                 Content.Add(words);
@@ -92,13 +102,40 @@ namespace SvgTextViewer
 
             return Content;
         }
+        
 
         public static bool IsRtl(this string word, bool isContentRtl)
         {
-            var res = RtlCharsPattern.IsMatch(word);
+            var res = LtrCharsPattern.Matches(word).Count == word.Length;
 
-            if (res == false && word.Any(c=> DependentAlignChars.IndexOf(c) < 0) == false)
+            if (word.Any(c => InertChars.IndexOf(c) < 0) == false)
                 return isContentRtl;
+
+            return !res;
+        }
+
+        private static List<string> ConvertInertCharToWord(this string word)
+        {
+            var res = new List<string>();
+            var wordBuffer = "";
+
+            foreach (var c in word)
+            {
+                if (InertChars.IndexOf(c) >= 0)
+                {
+                    if (wordBuffer.Length > 0)
+                    {
+                        res.Add(wordBuffer);
+                        wordBuffer = "";
+                    }
+                    res.Add(c.ToString());
+                }
+                else
+                    wordBuffer += c;
+            }
+
+            if (wordBuffer.Length > 0)
+                res.Add(wordBuffer);
 
             return res;
         }

@@ -25,7 +25,14 @@ namespace SvgTextViewer
         public Rect Area { get; set; }
         public Range OffsetRange { get; set; }
         public Dictionary<StyleType, InlineStyle> Styles { get; set; }
-        public double SpaceWidth { get; set; }
+        private double _spaceWidth;
+        public double SpaceWidth
+        {
+            get => IsInnerWord ? 0 : _spaceWidth;
+            set => _spaceWidth = value;
+        }
+
+        public bool IsInnerWord { get; set; }
         public double ImpressivePaddingPercent { get; set; }
         public string Text { get; set; }
         public double Width { get; set; }
